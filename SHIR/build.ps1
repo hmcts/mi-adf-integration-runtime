@@ -11,7 +11,7 @@ function Install-SHIR() {
         Download-GatewayInstaller $VersionToInstall
     }
     
-    $MsiFileName = $IntegrationRuntimeFiles[0].Name
+    $MsiFileName = (Get-ChildItem -Path "$PSScriptRoot" | Sort-Object LastWriteTime -Descending | Where-Object { $_.Name -match [regex] "IntegrationRuntime_$VersionToInstall.*.msi" })[0].Name
     Start-Process msiexec.exe -Wait -ArgumentList "/i $PSScriptRoot\$MsiFileName /qn"
     if (!$?) {
         Write-Log "SHIR MSI Install Failed"
