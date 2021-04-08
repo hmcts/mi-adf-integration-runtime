@@ -39,6 +39,7 @@ stages:
               command: build
               Dockerfile: ./Dockerfile
           - task: Docker@1
+            condition: not(startsWith(variables['Build.SourceBranch'], 'refs/pull/'))
             displayName: 'Push Docker Image'
             inputs:
               azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
