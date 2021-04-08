@@ -4,9 +4,14 @@ function Install-SHIR() {
     Write-Log "Install the Self-hosted Integration Runtime in the Windows container"
 
     $VersionToInstall = Get-LatestGatewayVersion
-    Download-GatewayInstaller $VersionToInstall
+    $IntegrationRuntimeFiles = (Get-ChildItem -Path "$PSScriptRoot" | Sort-Object LastWriteTime -Descending | Where-Object { $_.Name -match [regex] "IntegrationRuntime_$VersionToInstall.*.msi" })
+
+    if (-Not $IntegrationRuntimeFiles)
+    {
+        Download-GatewayInstaller $VersionToInstall
+    }
     
-    $MsiFileName = (Get-ChildItem -Path "$PSScriptRoot" | Where-Object { $_.Name -match [regex] "IntegrationRuntime.*.msi" })[0].Name
+    $MsiFileName = $IntegrationRuntimeFiles[0].Name
     Start-Process msiexec.exe -Wait -ArgumentList "/i $PSScriptRoot\$MsiFileName /qn"
     if (!$?) {
         Write-Log "SHIR MSI Install Failed"

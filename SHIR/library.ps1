@@ -79,7 +79,7 @@ function Download-GatewayInstaller
 
     Write-Log "Start to download MSI"
     $uri = Populate-Url $version
-    $output = "$PSScriptRoot\IntegrationRuntime.msi"
+    $output = "$PSScriptRoot\IntegrationRuntime_$version.msi"
     Write-Log "Downloading from: $uri"
     (New-Object System.Net.WebClient).DownloadFile($uri, $output)
 
