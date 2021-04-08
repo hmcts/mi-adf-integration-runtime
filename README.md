@@ -1,3 +1,5 @@
+Note: Initial code from https://github.com/Azure/Azure-Data-Factory-Integration-Runtime-in-Windows-Container
+
 Azure Data Factory Integration Runtime in Windows Container Sample
 =======
 This repo contains the sample for running the Azure Data Factory Integration Runtime in Windows Container
