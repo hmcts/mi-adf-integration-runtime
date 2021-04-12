@@ -17,6 +17,7 @@ function Check-Main-Process() {
         return $TRUE
     }
     else {
+        Write-Log "Main Process not found"
         throw "Main Process not found"   
     }
 }
@@ -30,6 +31,7 @@ function Check-Node-Connection() {
         return $TRUE
     }
     else {
+        Write-Log "Node is offline"
         throw "Node is offline"    
     }
 }

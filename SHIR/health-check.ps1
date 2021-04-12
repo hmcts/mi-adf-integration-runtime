@@ -11,6 +11,7 @@ function Check-Node-Connection() {
         return $TRUE
     }
     else {
+        Write-Log "Health check shows disconnected"
         exit 1
     }
 }
