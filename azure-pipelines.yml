@@ -15,12 +15,6 @@ variables:
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}: 
     deployTarget: dev
 
-parameters:
-  - name: pushPowershell
-    displayName: Push Powershell Image
-    type: boolean
-    default: false
-
 stages:
   - stage: BuildAndPush
     jobs:
@@ -38,22 +32,6 @@ stages:
               azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
               azureContainerRegistry: $(azureContainerRegistry)
               command: login
-          # If push powershell image to private acr for neuvector
-          - ${{ if eq(parameters.pushPowershell, true) }}:
-            - task: Docker@1
-              displayName: 'Build Powershell Dependency Docker Image'
-              inputs:
-                imageName: '$(azureContainerRegistry)/$(projectName)/powershell:latest'
-                command: build
-                Dockerfile: ./powershell/Dockerfile
-            - task: Docker@1
-              displayName: 'Push Powershell Dependency Docker Image'
-              inputs:
-                azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-                azureContainerRegistry: $(azureContainerRegistry)
-                command: push
-                imageName: '$(azureContainerRegistry)/$(projectName)/powershell:latest'
-          # End If
           - task: Docker@1
             displayName: 'Build Docker Image'
             inputs:
