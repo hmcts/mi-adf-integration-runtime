@@ -5,6 +5,8 @@ COPY SHIR C:/SHIR/
 
 RUN ["powershell", "$VerbosePreference=\"Continue\""]
 
+RUN ["powershell", "C:/SHIR/validate.ps1"]
+
 RUN ["powershell", "C:/SHIR/build.ps1"]
 
 CMD ["powershell", "C:/SHIR/setup.ps1"]
