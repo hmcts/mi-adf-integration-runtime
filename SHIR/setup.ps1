@@ -1,4 +1,5 @@
 Import-Module $PSScriptRoot\library.ps1
+Import-Module $PSScriptRoot\secrets-setup.ps1
 
 $DmgcmdPath = Get-CmdFilePath
 
@@ -75,24 +76,18 @@ function RegisterNewNode {
     }
 }
 
+# Setup env from secrets
+Set-Environment-Varibles-From-Secrets
+
 # Register SHIR with key from Env Variable: AUTH_KEY
 if (Check-Is-Registered) {
     Write-Log "Restart the existing node"
     Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-} elseif ((Test-Path Env:AUTH_KEY) -Or ((Test-Path Env:SECRETS_MOUNT_PATH) -And (Test-Path Env:SECRETS_AUTH_KEY_NAME))) {
+} elseif (Test-Path Env:AUTH_KEY) {
     $IRAuthKey = (Get-Item Env:AUTH_KEY).Value
     $IRNodeName = (Get-Item Env:NODE_NAME).Value
     $IREnableHA = (Get-Item Env:ENABLE_HA).Value
     $IRHAPort = (Get-Item Env:HA_PORT).Value
-
-    # Secrets mount value takes priority over environment variable setting for security.
-    if ((Test-Path Env:SECRETS_MOUNT_PATH) -And (Test-Path Env:SECRETS_AUTH_KEY_NAME)) {
-        $SecretsMountPath = (Get-Item Env:SECRETS_MOUNT_PATH).Value
-        $SecretsAuthKeyName = (Get-Item Env:SECRETS_AUTH_KEY_NAME).Value
-        Write-Log "Getting AuthKey from KeyVault Mount: $($SecretsMountPath)"
-        Write-Log "Using secret name: $($SecretsAuthKeyName)"
-        $IRAuthKey = Get-Content "$($SecretsMountPath)\$($SecretsAuthKeyName)"
-    }
 
     Write-Log "Registering SHIR with the node key: $($IRAuthKey)"
     Write-Log "Registering SHIR with the node name: $($IRNodeName)"
