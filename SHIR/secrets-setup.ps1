@@ -8,12 +8,18 @@ function Set-Environment-Varibles-From-Secrets() {
     if (Test-Path Env:SECRETS_MOUNT_PATH) {
         $SecretsMountPath = (Get-Item Env:SECRETS_MOUNT_PATH).Value
         Write-Log "Getting secrets from KeyVault Mount: $($SecretsMountPath)"
+        
+        $Files = Get-ChildItem -File "$($SecretsMountPath)"
 
-        foreach ($SecretKey in $SecretsMap.Keys) {
-            $EnvToSet = $SecretsMap.Item($SecretKey);
-            Write-Log "Using secret key: ${SecretKey} to assign to env ${EnvToSet}"
-            $ValueToSet = Get-Content "$($SecretsMountPath)\$($SecretKey)"
-            New-Item -Path "Env:$($EnvToSet.Name)" -Value $ValueToSet
-        }    
+        foreach ($File in $Files) {
+            $EnvToSet = $File.Name
+            if ($SecretsMap.ContainsKey($File.Name)) {
+                $EnvToSet = $SecretsMap.Item($File.Name);
+            }
+
+            Write-Log "Using secret key: ${File.Name} to assign to env ${EnvToSet}"
+            $ValueToSet = Get-Content "$($File.FullName)"
+            New-Item -Path "Env:$($EnvToSet)" -Value $ValueToSet
+        }
     }
 }
