@@ -12,14 +12,19 @@ function Set-Environment-Varibles-From-Secrets() {
         $Files = Get-ChildItem -File "$($SecretsMountPath)"
 
         foreach ($File in $Files) {
-            $EnvToSet = $File.Name.ToUpper.Replace('-', '_') # Dash Delimiter is invalid Environment Variable name
+            $EnvToSet = $File.Name.ToUpper().Replace('-', '_') # Dash Delimiter is invalid Environment Variable name
             if ($SecretsMap.ContainsKey($File.Name)) {
                 $EnvToSet = $SecretsMap.Item($File.Name);
             }
 
             Write-Log "Using secret key: ${File.Name} to assign to env ${EnvToSet}"
             $ValueToSet = Get-Content "$($File.FullName)"
-            New-Item -Path "Env:$($EnvToSet)" -Value $ValueToSet
+            New-Item -Force -Path "Env:$($EnvToSet)" -Value $ValueToSet
         }
     }
+    else {
+        Write-Log "No mounted secrets."
+    }
 }
+
+Set-Environment-Varibles-From-Secrets
