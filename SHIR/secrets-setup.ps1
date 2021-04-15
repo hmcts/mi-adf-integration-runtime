@@ -12,7 +12,7 @@ function Set-Environment-Varibles-From-Secrets() {
         $Files = Get-ChildItem -File "$($SecretsMountPath)"
 
         foreach ($File in $Files) {
-            $EnvToSet = $File.Name
+            $EnvToSet = $File.Name.ToUpper.Replace('-', '_') # Dash Delimiter is invalid Environment Variable name
             if ($SecretsMap.ContainsKey($File.Name)) {
                 $EnvToSet = $SecretsMap.Item($File.Name);
             }
