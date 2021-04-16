@@ -1,4 +1,5 @@
 Import-Module $PSScriptRoot\library.ps1
+Import-Module $PSScriptRoot\secrets-setup.ps1
 
 $DmgcmdPath = Get-CmdFilePath
 
@@ -17,6 +18,7 @@ function Check-Main-Process() {
         return $TRUE
     }
     else {
+        Write-Log "Main Process not found"
         throw "Main Process not found"   
     }
 }
@@ -30,6 +32,7 @@ function Check-Node-Connection() {
         return $TRUE
     }
     else {
+        Write-Log "Node is offline"
         throw "Node is offline"    
     }
 }
@@ -73,17 +76,25 @@ function RegisterNewNode {
     }
 }
 
+# Setup env from secrets
+Set-Environment-Varibles-From-Secrets
+
 # Register SHIR with key from Env Variable: AUTH_KEY
 if (Check-Is-Registered) {
     Write-Log "Restart the existing node"
     Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
 } elseif (Test-Path Env:AUTH_KEY) {
-    Write-Log "Registering SHIR with the node key: $((Get-Item Env:AUTH_KEY).Value)"
-    Write-Log "Registering SHIR with the node name: $((Get-Item Env:NODE_NAME).Value)"
-    Write-Log "Registering SHIR with the enable high availability flag: $((Get-Item Env:ENABLE_HA).Value)"
-    Write-Log "Registering SHIR with the tcp port: $((Get-Item Env:HA_PORT).Value)"
+    $IRAuthKey = (Get-Item Env:AUTH_KEY).Value
+    $IRNodeName = (Get-Item Env:NODE_NAME).Value
+    $IREnableHA = (Get-Item Env:ENABLE_HA).Value
+    $IRHAPort = (Get-Item Env:HA_PORT).Value
+
+    Write-Log "Registering SHIR with the node key: $($IRAuthKey)"
+    Write-Log "Registering SHIR with the node name: $($IRNodeName)"
+    Write-Log "Registering SHIR with the enable high availability flag: $($IREnableHA)"
+    Write-Log "Registering SHIR with the tcp port: $($IRHAPort)"
     Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-    RegisterNewNode (Get-Item Env:AUTH_KEY).Value (Get-Item Env:NODE_NAME).Value (Get-Item Env:ENABLE_HA).Value (Get-Item Env:HA_PORT).Value
+    RegisterNewNode $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
 } else {
     Write-Log "Invalid AUTH_KEY Value"
     exit 1

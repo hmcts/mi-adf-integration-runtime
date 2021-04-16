@@ -5,6 +5,12 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
+parameters:
+  - name: pushImage
+    displayName: Push Docker Image To ACR
+    type: boolean
+    default: false
+
 variables:
   projectName: 'mi'
   applicationName: 'adf-integration-runtime'
@@ -39,7 +45,7 @@ stages:
               command: build
               Dockerfile: ./Dockerfile
           - task: Docker@1
-            condition: not(startsWith(variables['Build.SourceBranch'], 'refs/pull/'))
+            condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(${{ parameters.pushImage }}, true))
             displayName: 'Push Docker Image'
             inputs:
               azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
