@@ -54,9 +54,11 @@ function RegisterNewNode {
     }
 
     if ($ENABLE_HA -eq "true") {
-        Write-Log "Enable High Availability"
         $PORT = $HA_PORT -or "8060"
+        Write-Log "Enable High Availability"
         Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
+        Write-Log "Enable High Availability FOr Container"
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
     }
 
     $StdOutResult = Get-Content "C:\SHIR\register-out.txt"
