@@ -42,7 +42,7 @@ function Get-CmdFilePath()
 
 function Get-RedirectedUrl 
 {
-    # SHIR 5.4.7749.1
+    # Latest version link
     $URL = "https://go.microsoft.com/fwlink/?linkid=839822"
  
     $request = [System.Net.WebRequest]::Create($url)
