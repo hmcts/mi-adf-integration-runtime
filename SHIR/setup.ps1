@@ -45,20 +45,20 @@ function RegisterNewNode {
         $HA_PORT
     )
 
+    if ($ENABLE_HA -eq "true") {
+        $PORT = $HA_PORT -or "8060"
+        Write-Log "Enable High Availability"
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
+        Write-Log "Enable High Availability For Container"
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+    }
+
     Write-Log "Start registering the new SHIR node"
 
     if (!$NODE_NAME) {
         Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
     } else {
         Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)", "$($NODE_NAME)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
-    }
-
-    if ($ENABLE_HA -eq "true") {
-        $PORT = $HA_PORT -or "8060"
-        Write-Log "Enable High Availability"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
-        Write-Log "Enable High Availability FOr Container"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
     }
 
     $StdOutResult = Get-Content "C:\SHIR\register-out.txt"
