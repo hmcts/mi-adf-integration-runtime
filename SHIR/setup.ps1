@@ -93,6 +93,7 @@ function RegisterNewNode {
             if ($_.Contains("forbidden"))
             {
                 # Retry registration once if forbidden as it may be related to a race condition for node registation
+                Write-Log "Retrying registration"
                 StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
             }
         }
