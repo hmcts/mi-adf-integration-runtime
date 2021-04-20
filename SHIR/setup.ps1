@@ -51,6 +51,9 @@ function RegisterNewNode {
         Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
         Write-Log "Enable High Availability For Container"
         Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+
+        Write-Log "Waiting 30 seconds before registration"
+        Start-Sleep -s 30
     }
 
     Write-Log "Start registering the new SHIR node"
