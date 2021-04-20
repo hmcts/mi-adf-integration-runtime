@@ -37,6 +37,34 @@ function Check-Node-Connection() {
     }
 }
 
+function StartRegistration {
+    Param(
+        $AUTH_KEY,
+        $NODE_NAME,
+        $ENABLE_HA,
+        $HA_PORT
+    )
+
+    if ($ENABLE_HA -eq "true") {
+        $PORT = $HA_PORT -or "8060"
+        Write-Log "Enable High Availability"
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
+        Write-Log "Enable High Availability For Container"
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+
+        Write-Log "Waiting 10 seconds before registration"
+        Start-Sleep -s 10
+    }
+
+    Write-Log "Start registering the new SHIR node"
+
+    if (!$NODE_NAME) {
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
+    } else {
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)", "$($NODE_NAME)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
+    }
+}
+
 function RegisterNewNode {
     Param(
         $AUTH_KEY,
@@ -48,33 +76,26 @@ function RegisterNewNode {
     Start-Process $DmgcmdPath -Wait -ArgumentList "-LogLevel", "All"
     Start-Process $DmgcmdPath -Wait -ArgumentList "-EventLogVerboseSetting", "On"
 
-    if ($ENABLE_HA -eq "true") {
-        $PORT = $HA_PORT -or "8060"
-        Write-Log "Enable High Availability"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
-        Write-Log "Enable High Availability For Container"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+    StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
 
-        Write-Log "Waiting 30 seconds before registration"
-        Start-Sleep -s 30
-    }
-
-    Write-Log "Start registering the new SHIR node"
-
-    if (!$NODE_NAME) {
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
-    } else {
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)", "$($NODE_NAME)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
-    }
+    Write-Log "Waiting 10 seconds to finalize registration"
+    Start-Sleep -s 10
 
     $StdOutResult = Get-Content "C:\SHIR\register-out.txt"
     $StdErrResult = Get-Content "C:\SHIR\register-error.txt"
 
-
     if ($StdOutResult)
     {
         Write-Log "Registration output:"
-        $StdOutResult | ForEach-Object { Write-Log $_ }
+        $StdOutResult | ForEach-Object
+        {
+            Write-Log $_
+            if ($_.Contains("forbidden"))
+            {
+                # Retry registration once if forbidden as it may be related to a race condition for node registation
+                StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
+            }
+        }
     }
 
     if ($StdErrResult)
