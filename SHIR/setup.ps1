@@ -46,7 +46,7 @@ function RegisterNewNode {
     )
 
     Start-Process $DmgcmdPath -Wait -ArgumentList "-LogLevel", "All"
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-EventLogVerboseSetting", "All"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-EventLogVerboseSetting", "On"
 
     if ($ENABLE_HA -eq "true") {
         $PORT = $HA_PORT -or "8060"
