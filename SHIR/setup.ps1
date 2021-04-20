@@ -87,8 +87,7 @@ function RegisterNewNode {
     if ($StdOutResult)
     {
         Write-Log "Registration output:"
-        $StdOutResult | ForEach-Object
-        {
+        $StdOutResult | ForEach-Object {
             Write-Log $_
             if ($_.Contains("forbidden"))
             {
