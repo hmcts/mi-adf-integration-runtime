@@ -45,6 +45,9 @@ function RegisterNewNode {
         $HA_PORT
     )
 
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-LogLevel", "All"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-EventLogVerboseSetting", "All"
+
     if ($ENABLE_HA -eq "true") {
         $PORT = $HA_PORT -or "8060"
         Write-Log "Enable High Availability"
