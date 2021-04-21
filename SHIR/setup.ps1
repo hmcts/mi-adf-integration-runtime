@@ -37,6 +37,16 @@ function Check-Node-Connection() {
     }
 }
 
+function EnableRemoteAccess {
+    Write-Log "Enable High Availability with port: $($PORT)"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
+    Write-Log "Enable High Availability For Container with port: $($PORT)"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+
+    Write-Log "Waiting 10 seconds to check remote access is enabled"
+    Start-Sleep -s 10
+}
+
 function StartRegistration {
     Param(
         $AUTH_KEY,
@@ -44,6 +54,18 @@ function StartRegistration {
         $ENABLE_HA,
         $HA_PORT
     )
+
+    # Enable remote access should be enabled after registration for the first node but before for the second nodes onwards.
+    # For the first node this will do nothing.
+    EnableRemoteAccess
+
+    Write-Log "Start registering the new SHIR node"
+
+    if (!$NODE_NAME) {
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
+    } else {
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)", "$($NODE_NAME)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
+    }
 
     if ($ENABLE_HA -eq "true") {
         $PORT = $HA_PORT
@@ -54,22 +76,11 @@ function StartRegistration {
         $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
         $EnableHighAvailabilityAttemptCount = 0
 
-        if ($IsPortAllocated) {
-            Write-Log "Port: $($PORT) is already in use"
-            throw "Port is already in use"
-        }
-
-        while (!$IsPortAllocated)
+        do
         {
             $EnableHighAvailabilityAttemptCount++
 
-            Write-Log "Enable High Availability"
-            Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
-            Write-Log "Enable High Availability For Container"
-            Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
-
-            Write-Log "Waiting 10 seconds to check remote access is enabled"
-            Start-Sleep -s 10
+            EnableRemoteAccess
 
             $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
 
@@ -79,14 +90,7 @@ function StartRegistration {
                 throw "Could not enable high availability"
             }
         }
-    }
-
-    Write-Log "Start registering the new SHIR node"
-
-    if (!$NODE_NAME) {
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
-    } else {
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)", "$($NODE_NAME)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
+        while (!$IsPortAllocated)
     }
 }
 
@@ -114,9 +118,9 @@ function RegisterNewNode {
         Write-Log "Registration output:"
         $StdOutResult | ForEach-Object {
             Write-Log $_
-            if ($_.Contains("forbidden"))
+            if ($_.Contains("EnableRemoteAccess"))
             {
-                # Retry registration once if forbidden as it may be related to a race condition for node registation
+                # Retry registration if it asks for EnableRemoteAccess as it may be related to a race condition for node registation
                 Write-Log "Retrying registration"
                 StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
             }
