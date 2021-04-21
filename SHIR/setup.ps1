@@ -38,6 +38,10 @@ function Check-Node-Connection() {
 }
 
 function EnableRemoteAccess {
+    Param(
+        $PORT
+    )
+
     Write-Log "Enable High Availability with port: $($PORT)"
     Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
     Write-Log "Enable High Availability For Container with port: $($PORT)"
@@ -57,7 +61,7 @@ function StartRegistration {
 
     # Enable remote access should be enabled after registration for the first node but before for the second nodes onwards.
     # For the first node this will do nothing.
-    EnableRemoteAccess
+    EnableRemoteAccess $PORT
 
     Write-Log "Start registering the new SHIR node"
 
@@ -80,7 +84,7 @@ function StartRegistration {
         {
             $EnableHighAvailabilityAttemptCount++
 
-            EnableRemoteAccess
+            EnableRemoteAccess $PORT
 
             $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
 
