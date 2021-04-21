@@ -46,12 +46,16 @@ function StartRegistration {
     )
 
     if ($ENABLE_HA -eq "true") {
-        $PORT = $HA_PORT -or "8060"
+        $PORT = $HA_PORT
+        if (!$PORT)
+        {
+            $PORT = "8060" # Default Port
+        }
         $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
         $EnableHighAvailabilityAttemptCount = 0
 
         if ($IsPortAllocated) {
-            Write-Log "Port: $($Port) is already in use"
+            Write-Log "Port: $($PORT) is already in use"
             throw "Port is already in use"
         }
 
@@ -69,7 +73,7 @@ function StartRegistration {
 
             if (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -gt 3)) 
             {
-                Write-Log "Unable to successfully allocate port: $($Port) for High Availability"
+                Write-Log "Unable to successfully allocate port: $($PORT) for High Availability"
                 throw "Could not enable high availability"
             }
         }
