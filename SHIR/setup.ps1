@@ -59,6 +59,12 @@ function StartRegistration {
         $HA_PORT
     )
 
+    $PORT = $HA_PORT
+    if (!$PORT)
+    {
+        $PORT = "8060" # Default Port
+    }
+
     # Enable remote access should be enabled after registration for the first node but before for the second nodes onwards.
     # For the first node this will do nothing.
     EnableRemoteAccess $PORT
@@ -72,11 +78,6 @@ function StartRegistration {
     }
 
     if ($ENABLE_HA -eq "true") {
-        $PORT = $HA_PORT
-        if (!$PORT)
-        {
-            $PORT = "8060" # Default Port
-        }
         $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
         $EnableHighAvailabilityAttemptCount = 0
 
