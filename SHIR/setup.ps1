@@ -65,7 +65,7 @@ function StartRegistration {
             Write-Log "Waiting 10 seconds to check remote access is enabled"
             Start-Sleep -s 10
 
-            $IsPortAllocated = netstat -a -n | Select-String "$($PORT)"
+            $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
 
             if (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -gt 3)) 
             {
