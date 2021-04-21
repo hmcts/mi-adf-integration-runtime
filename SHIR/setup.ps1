@@ -63,6 +63,8 @@ function StartRegistration {
         {
             $EnableHighAvailabilityAttemptCount++
 
+            Write-Log "Enable High Availability"
+            Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
             Write-Log "Enable High Availability For Container"
             Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
 
