@@ -47,7 +47,7 @@ function StartRegistration {
 
     if ($ENABLE_HA -eq "true") {
         $PORT = $HA_PORT -or "8060"
-        $IsPortAllocated = netstat -a -n | Select-String "$($PORT)"
+        $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
         $EnableHighAvailabilityAttemptCount = 0
 
         if ($IsPortAllocated) {
