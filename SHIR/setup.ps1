@@ -47,13 +47,32 @@ function StartRegistration {
 
     if ($ENABLE_HA -eq "true") {
         $PORT = $HA_PORT -or "8060"
-        Write-Log "Enable High Availability"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
-        Write-Log "Enable High Availability For Container"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+        $IsPortAllocated = netstat -a -n | Select-String "$($PORT)"
+        $EnableHighAvailabilityAttemptCount = 0
 
-        Write-Log "Waiting 10 seconds before registration"
-        Start-Sleep -s 10
+        if ($IsPortAllocated) {
+            Write-Log "Port: $($Port) is already in use"
+            throw "Port is already in use"
+        }
+
+        while (!$IsPortAllocated)
+        {
+            $EnableHighAvailabilityAttemptCount++
+
+            Write-Log "Enable High Availability For Container"
+            Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+
+            Write-Log "Waiting 10 seconds to check remote access is enabled"
+            Start-Sleep -s 10
+
+            $IsPortAllocated = netstat -a -n | Select-String "$($PORT)"
+
+            if (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -gt 3)) 
+            {
+                Write-Log "Unable to successfully allocate port: $($Port) for High Availability"
+                throw "Could not enable high availability"
+            }
+        }
     }
 
     Write-Log "Start registering the new SHIR node"
