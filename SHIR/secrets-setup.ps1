@@ -26,5 +26,3 @@ function Set-Environment-Varibles-From-Secrets() {
         Write-Log "No mounted secrets."
     }
 }
-
-Set-Environment-Varibles-From-Secrets

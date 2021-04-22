@@ -37,13 +37,37 @@ function Check-Node-Connection() {
     }
 }
 
-function RegisterNewNode {
+function EnableRemoteAccess {
+    Param(
+        $PORT
+    )
+
+    Write-Log "Enable High Availability with port: $($PORT)"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
+    Write-Log "Enable High Availability For Container with port: $($PORT)"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+
+    Write-Log "Waiting 10 seconds to check remote access is enabled"
+    Start-Sleep -s 10
+}
+
+function StartRegistration {
     Param(
         $AUTH_KEY,
         $NODE_NAME,
         $ENABLE_HA,
         $HA_PORT
     )
+
+    $PORT = $HA_PORT
+    if (!$PORT)
+    {
+        $PORT = "8060" # Default Port
+    }
+
+    # Enable remote access should be enabled after registration for the first node but before for the second nodes onwards.
+    # For the first node this will do nothing.
+    EnableRemoteAccess $PORT
 
     Write-Log "Start registering the new SHIR node"
 
@@ -54,19 +78,58 @@ function RegisterNewNode {
     }
 
     if ($ENABLE_HA -eq "true") {
-        Write-Log "Enable High Availability"
-        $PORT = $HA_PORT -or "8060"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccess", "$($PORT)"
+        $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
+        $EnableHighAvailabilityAttemptCount = 0
+
+        do
+        {
+            $EnableHighAvailabilityAttemptCount++
+
+            EnableRemoteAccess $PORT
+
+            $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
+
+            if (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -gt 3)) 
+            {
+                Write-Log "Unable to successfully allocate port: $($PORT) for High Availability"
+                throw "Could not enable high availability"
+            }
+        }
+        while (!$IsPortAllocated)
     }
+}
+
+function RegisterNewNode {
+    Param(
+        $AUTH_KEY,
+        $NODE_NAME,
+        $ENABLE_HA,
+        $HA_PORT
+    )
+
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-LogLevel", "All"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-EventLogVerboseSetting", "On"
+
+    StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
+
+    Write-Log "Waiting 10 seconds to finalize registration"
+    Start-Sleep -s 10
 
     $StdOutResult = Get-Content "C:\SHIR\register-out.txt"
     $StdErrResult = Get-Content "C:\SHIR\register-error.txt"
 
-
     if ($StdOutResult)
     {
         Write-Log "Registration output:"
-        $StdOutResult | ForEach-Object { Write-Log $_ }
+        $StdOutResult | ForEach-Object {
+            Write-Log $_
+            if ($_.Contains("EnableRemoteAccess"))
+            {
+                # Retry registration if it asks for EnableRemoteAccess as it may be related to a race condition for node registation
+                Write-Log "Retrying registration"
+                StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
+            }
+        }
     }
 
     if ($StdErrResult)
