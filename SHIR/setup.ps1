@@ -120,15 +120,7 @@ function RegisterNewNode {
     if ($StdOutResult)
     {
         Write-Log "Registration output:"
-        $StdOutResult | ForEach-Object {
-            Write-Log $_
-            if ($_.Contains("EnableRemoteAccess"))
-            {
-                # Retry registration if it asks for EnableRemoteAccess as it may be related to a race condition for node registation
-                Write-Log "Retrying registration"
-                StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
-            }
-        }
+        $StdOutResult | ForEach-Object { Write-Log $_ }
     }
 
     if ($StdErrResult)
