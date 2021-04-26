@@ -92,7 +92,6 @@ function StartRegistration {
             if (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -gt 3)) 
             {
                 Write-Log "Unable to successfully allocate port: $($PORT) for High Availability"
-                throw "Could not enable high availability"
             }
         }
         while (!$IsPortAllocated)
@@ -152,7 +151,7 @@ if (Check-Is-Registered) {
     $IREnableHA = (Get-Item Env:ENABLE_HA).Value
     $IRHAPort = (Get-Item Env:HA_PORT).Value
 
-    Write-Log "Registering SHIR with the node key: $($IRAuthKey)"
+    Write-Log "Registering SHIR with the node key with service endpoint: $($IRAuthKey.Split("@")[3])"
     Write-Log "Registering SHIR with the node name: $($IRNodeName)"
     Write-Log "Registering SHIR with the enable high availability flag: $($IREnableHA)"
     Write-Log "Registering SHIR with the tcp port: $($IRHAPort)"
