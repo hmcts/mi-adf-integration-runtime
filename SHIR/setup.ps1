@@ -78,7 +78,7 @@ function StartRegistration {
     }
 
     if ($ENABLE_HA -eq "true") {
-        $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
+        $IsPortAllocated = false
         $EnableHighAvailabilityAttemptCount = 0
 
         do
@@ -88,13 +88,12 @@ function StartRegistration {
             EnableRemoteAccess $PORT
 
             $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
-
-            if (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -gt 3)) 
-            {
-                Write-Log "Unable to successfully allocate port: $($PORT) for High Availability"
-            }
         }
-        while (!$IsPortAllocated)
+        while (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -lt 3))
+
+        if (!$IsPortAllocated) {
+            Write-Log "Unable to successfully allocate port: $($PORT) for High Availability"
+        }
     }
 }
 
