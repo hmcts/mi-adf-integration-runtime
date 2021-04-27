@@ -78,7 +78,7 @@ function StartRegistration {
     }
 
     if ($ENABLE_HA -eq "true") {
-        $IsPortAllocated = false
+        $IsPortAllocated = $false
         $EnableHighAvailabilityAttemptCount = 0
 
         do
