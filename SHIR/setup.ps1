@@ -78,7 +78,7 @@ function StartRegistration {
     }
 
     if ($ENABLE_HA -eq "true") {
-        $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
+        $IsPortAllocated = $false
         $EnableHighAvailabilityAttemptCount = 0
 
         do
@@ -88,14 +88,12 @@ function StartRegistration {
             EnableRemoteAccess $PORT
 
             $IsPortAllocated = Get-NetTCPConnection | Where-Object {$_.State -eq "Listen"} | Select-String "$($PORT)"
-
-            if (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -gt 3)) 
-            {
-                Write-Log "Unable to successfully allocate port: $($PORT) for High Availability"
-                throw "Could not enable high availability"
-            }
         }
-        while (!$IsPortAllocated)
+        while (!$IsPortAllocated -And ($EnableHighAvailabilityAttemptCount -lt 3))
+
+        if (!$IsPortAllocated) {
+            Write-Log "Unable to successfully allocate port: $($PORT) for High Availability"
+        }
     }
 }
 
@@ -121,15 +119,7 @@ function RegisterNewNode {
     if ($StdOutResult)
     {
         Write-Log "Registration output:"
-        $StdOutResult | ForEach-Object {
-            Write-Log $_
-            if ($_.Contains("EnableRemoteAccess"))
-            {
-                # Retry registration if it asks for EnableRemoteAccess as it may be related to a race condition for node registation
-                Write-Log "Retrying registration"
-                StartRegistration $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
-            }
-        }
+        $StdOutResult | ForEach-Object { Write-Log $_ }
     }
 
     if ($StdErrResult)
@@ -152,7 +142,7 @@ if (Check-Is-Registered) {
     $IREnableHA = (Get-Item Env:ENABLE_HA).Value
     $IRHAPort = (Get-Item Env:HA_PORT).Value
 
-    Write-Log "Registering SHIR with the node key: $($IRAuthKey)"
+    Write-Log "Registering SHIR with the node key with service endpoint: $($IRAuthKey.Split("@")[3])"
     Write-Log "Registering SHIR with the node name: $($IRNodeName)"
     Write-Log "Registering SHIR with the enable high availability flag: $($IREnableHA)"
     Write-Log "Registering SHIR with the tcp port: $($IRHAPort)"
