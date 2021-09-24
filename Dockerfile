@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 # Download the latest self-hosted integration runtime installer into the SHIR folder
 COPY SHIR C:/SHIR/
 
-RUN ["powershell", "cp C:/SHIR/config/hosts C:/windows/system32/drivers/etc/ hosts"]
+RUN ["powershell", "cp C:/SHIR/config/hosts C:/windows/system32/drivers/etc/hosts"]
 
 RUN ["powershell", "C:/SHIR/validate.ps1"]
 
