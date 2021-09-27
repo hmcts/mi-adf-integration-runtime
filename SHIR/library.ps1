@@ -96,7 +96,7 @@ function Download-GatewayInstaller
 
 function Get-LatestGatewayVersion()
 {
-    $latestGateway = "https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_5.8.7856.3.msi"
+    $latestGateway = Get-RedirectedUrl "https://go.microsoft.com/fwlink/?linkid=839822"
     $item = $latestGateway.split("/") | Select-Object -Last 1
     if ($null -eq $item -or $item -notlike "IntegrationRuntime*")
     {
