@@ -158,7 +158,7 @@ Start-Sleep -Seconds 30
 
 # Schedule auto update to time when node is less likely to be used + a random buffer to maxmimise chances at least 1 node stays active.
 $TriggerTime = [string](1 + (Get-Random -Maximum 8)) + 'pm'
-$Action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument '-NonInteractive -NoLogo -NoProfile -File "C:\SHIR\script-update-gateway.ps1"'
+$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NonInteractive -NoLogo -NoProfile -File "C:\SHIR\script-update-gateway.ps1"'
 $Trigger = New-ScheduledTaskTrigger -Daily -At $TriggerTime
 $Settings = New-ScheduledTaskSettingsSet
 $Principal = New-ScheduledTaskPrincipal -UserId $env:UserName
