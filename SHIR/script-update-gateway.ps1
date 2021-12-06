@@ -1,3 +1,5 @@
+Import-Module $PSScriptRoot\library.ps1
+
 # Copy of https://raw.githubusercontent.com/Azure/Azure-DataFactory/main/SamplesV2/SelfHostedIntegrationRuntime/AutomationScripts/script-update-gateway.ps1
 # Refactored to library.ps1
 
@@ -14,8 +16,6 @@
 ## PS > .\script-update-gateway.ps1
 ## 2. Download and install Microsoft Integration Runtime of specified version
 ## PS > .\script-update-gateway.ps1 -version 2.11.6380.20
-
-Import-Module $PSScriptRoot\library.ps1
 
 param(
     [Parameter(Mandatory=$false)]
