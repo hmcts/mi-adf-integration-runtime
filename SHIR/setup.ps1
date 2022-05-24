@@ -166,6 +166,8 @@ try {
                 continue
             }
         } catch {
+            $checkCount++
+
             if ($checkCount -gt 3) {
                 Write-Log "Failed more than 3 checks in a row."
                 throw "Unable to recover SHIR process"
