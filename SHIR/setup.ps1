@@ -13,13 +13,13 @@ function Check-Is-Registered() {
 
 function Check-Main-Process() {
     $ProcessResult = Get-WmiObject Win32_Process -Filter "name = 'diahost.exe'"
-    
+
     if ($ProcessResult) {
         return $TRUE
     }
     else {
         Write-Log "Main Process not found"
-        throw "Main Process not found"   
+        throw "Main Process not found"
     }
 }
 
@@ -158,10 +158,23 @@ Start-Sleep -Seconds 30
 
 try {
     while ($TRUE) {
-        if ((Check-Main-Process) -and (Check-Node-Connection)) {   
-            Write-Log "Node Health Check Pass"
-            Start-Sleep -Seconds 60
-            continue
+        try {
+            $checkCount = 0
+            if ((Check-Main-Process) -and (Check-Node-Connection)) {
+                Write-Log "Node Health Check Pass"
+                Start-Sleep -Seconds 60
+                continue
+            }
+        } catch {
+            if ($checkCount -gt 3) {
+                Write-Log "Failed more than 3 checks in a row."
+                throw "Unable to recover SHIR process"
+            }
+            if ($checkCount -gt 1) {
+                Write-Log "Restarting the existing node for failed check"
+                Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+            }
+            Start-Sleep -Seconds 20
         }
     }
 }

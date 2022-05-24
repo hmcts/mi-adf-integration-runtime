@@ -29,15 +29,7 @@ function Get-RegistryKeyValue
 
 function Get-CmdFilePath()
 {
-    $filePath = Get-ItemPropertyValue "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\ConfigurationManager" "DiacmdPath"
-    if ([string]::IsNullOrEmpty($filePath))
-    {
-        throw "Get-InstalledFilePath: Cannot find installed File Path"
-    }
-
-    # dmgcmd performs the same functions but has return error messages and exit codes and is the preferred cmd to use.
-    $filePath = $filePath -replace "diacmd","dmgcmd"
-    return $filePath
+    return "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
 }
 
 function Get-RedirectedUrl 
