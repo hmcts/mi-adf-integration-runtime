@@ -163,13 +163,14 @@ try {
         try {
             if ((Check-Main-Process) -and (Check-Node-Connection)) {
                 Write-Log "Node Health Check Pass"
+                $checkCount = 0
                 Start-Sleep -Seconds 60
                 continue
             }
         } catch {
             $checkCount++
 
-            if ($checkCount -gt 3) {
+            if ($checkCount -gt 2) {
                 Write-Log "Failed more than 3 checks in a row."
                 throw "Unable to recover SHIR process"
             }
