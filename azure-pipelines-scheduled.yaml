@@ -55,6 +55,7 @@ stages:
                 current_link=$(curl -I "https://go.microsoft.com/fwlink/?linkid=839822" | grep Location)
                 echo "$current_version"
                 echo "$current_link"
+                current_version="test"
                 if [[ $currentLink = *$currentVersion* ]]; then
                   echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]true";
                 else
