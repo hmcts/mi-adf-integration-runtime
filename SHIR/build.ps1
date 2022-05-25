@@ -46,6 +46,7 @@ try {
     Install-Jre
     Install-NetFramework
     Install-SHIR
+    SetupEnv
 } catch {
     exit 1
 }
