@@ -27,7 +27,7 @@ function SetupEnv() {
     Write-Log "SHIR environment setup successfully"
 }
 
-function InstallJre() {
+function Install-Jre() {
     Write-Log "Begin to install the OpenJDK 11 runtime"
     Invoke-WebRequest "https://api.adoptopenjdk.net/v3/installer/latest/11/ga/windows/x64/jdk/hotspot/normal/adoptopenjdk?project=jdk" -OutFile "C:\SHIR\OpenJdk11.msi"
     Start-Process -Wait -FilePath msiexec -ArgumentList /i, "C:\SHIR\OpenJdk11.msi", "ADDLOCAL=FeatureMain,FeatureEnvironment,FeatureJarFileRunWith,FeatureJavaHome", 'INSTALLDIR="C:\Program Files\Java"', /quiet -Verb RunAs
@@ -35,7 +35,7 @@ function InstallJre() {
     [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Java", "Machine")
 }
 
-function InstallNetFramework() {
+function Install-NetFramework() {
     Write-Log "Begin to install the NET Framework Visual C++ 2010 Redistributable"
     Invoke-WebRequest "https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe" -OutFile "C:\SHIR\vcredist_x64.exe"
     Start-Process -Wait -FilePath "C:\SHIR\vcredist_x64.exe" -ArgumentList /install, /quiet, /norestart
@@ -43,8 +43,8 @@ function InstallNetFramework() {
 }
 
 try {
-    InstallJre
-    InstallNetFramework
+    Install-Jre
+    Install-NetFramework
     Install-SHIR
 } catch {
     exit 1
