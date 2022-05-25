@@ -44,7 +44,7 @@ stages:
         steps:
           - task: AzureCLI@2
             displayName: 'Get current Self-hosted IR version'
-            name: 'getSelfHostedIRVersion'
+            name: 'getSelfHostedIrVersion'
             inputs:
               azureSubscription: $(azureSubscriptionEndpoint)
               scriptType: bash
@@ -72,7 +72,7 @@ stages:
                 echo "$(getSelfHostedIRVersion.UP_TO_DATE_VERSION)"
                 echo "World"
   - stage: BuildAndPush
-    condition: eq("$(getSelfHostedIRVersion.UP_TO_DATE_VERSION)", false)
+    condition: eq(variables['getSelfHostedIrVersion.UP_TO_DATE_VERSION'], false)
     jobs:
       - job: BuildAndPush
         steps:
