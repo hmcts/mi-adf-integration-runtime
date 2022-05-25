@@ -34,7 +34,7 @@ variables:
     environment: 'prod'
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}:
     environment: ${{ parameters.environment }}
-  azureSubscriptionEndpoint: 'DTS-SHAREDSERVICES-$(upper(environment))'
+  azureSubscriptionEndpoint: DTS-SHAREDSERVICES-${{ variables['environment'] }}
   azureContainerRegistry: 'sdshmctspublic.azurecr.io'
 
 stages:
