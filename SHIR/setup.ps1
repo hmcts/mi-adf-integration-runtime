@@ -157,9 +157,10 @@ Write-Log "Waiting 30 seconds waiting for connecting"
 Start-Sleep -Seconds 30
 
 try {
+    $checkCount = 0
+
     while ($TRUE) {
         try {
-            $checkCount = 0
             if ((Check-Main-Process) -and (Check-Node-Connection)) {
                 Write-Log "Node Health Check Pass"
                 Start-Sleep -Seconds 60
