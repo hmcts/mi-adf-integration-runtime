@@ -62,7 +62,6 @@ stages:
                 fi
           - task: AzureCLI@2
             displayName: 'Check output'
-            name: 'getSelfHostedIRVersion'
             inputs:
               azureSubscription: $(azureSubscriptionEndpoint)
               scriptType: bash
