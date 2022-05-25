@@ -53,8 +53,8 @@ stages:
                 az config set extension.use_dynamic_install=yes_without_prompt
                 current_version=$(az datafactory integration-runtime get-status --factory-name "mi-ingestion-adf-$(environment)" --name "IR-Self-Hosted" --resource-group "mi-$(environment)-rg" --query properties.version)
                 current_link=$(curl -I "https://go.microsoft.com/fwlink/?linkid=839822" | grep Location)
-                echo "$current_version"
-                echo "$current_link"
+                echo "The current SHIR version is: $current_version"
+                echo "The latest download link is: $current_link"
                 current_version="test"
                 if [[ $current_link = *$current_version* ]]; then
                   echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]true";
@@ -72,7 +72,7 @@ stages:
                 echo "$(getSelfHostedIRVersion.UP_TO_DATE_VERSION)"
                 echo "World"
   - stage: BuildAndPush
-    condition: eq('$(getSelfHostedIRVersion.UP_TO_DATE_VERSION)', 'false')
+    condition: eq("$(getSelfHostedIRVersion.UP_TO_DATE_VERSION)", false)
     jobs:
       - job: BuildAndPush
         steps:
