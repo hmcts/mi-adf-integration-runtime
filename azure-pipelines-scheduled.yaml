@@ -47,7 +47,7 @@ stages:
             name: 'getSelfHostedIRVersion'
             inputs:
               azureSubscription: $(azureSubscriptionEndpoint)
-              scriptType: ps
+              scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
                 current_version=$(az datafactory integration-runtime get-status --factory-name "mi-ingestion-adf-$(environment)" --name "IR-Self-Hosted" --resource-group "mi-$(environment)-rg" --query properties.version)
@@ -92,3 +92,15 @@ stages:
             displayName: 'Docker Logout'
             inputs:
               command: logout
+  - stage: CleanUpAcrTags
+    jobs:
+      - job: CleanUpAcrTags
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Cleans historical tags for the current environment'
+            inputs:
+              azureSubscription: $(azureSubscriptionEndpoint)
+              scriptType: ps
+              scriptLocation: inlineScript
+              inlineScript: |
+                az account show
