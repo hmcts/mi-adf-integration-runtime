@@ -51,7 +51,7 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 az config set extension.use_dynamic_install=yes_without_prompt
-                current_version=$(az datafactory integration-runtime get-status --factory-name "mi-ingestion-adf-$(environment)" --name "IR-Self-Hosted" --resource-group "mi-$(environment)-rg" --query properties.version)
+                current_version=$(az datafactory integration-runtime get-status --factory-name "mi-ingestion-adf-$(environment)" --name "IR-Self-Hosted" --resource-group "mi-$(environment)-rg" --query properties.version | tr -d '"')
                 current_link=$(curl -I "https://go.microsoft.com/fwlink/?linkid=839822" | grep Location)
                 echo "The current SHIR version is: $current_version"
                 echo "The latest download link is: $current_link"
