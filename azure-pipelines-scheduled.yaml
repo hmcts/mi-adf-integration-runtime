@@ -64,40 +64,40 @@ stages:
                 fi
   - stage: BuildAndPush
     dependsOn: CheckShirVersion
-    condition: eq(dependencies.CheckShirVersion.outputs['CheckShirVersion.getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false')
+#    condition: eq(dependencies.CheckShirVersion.outputs['CheckShirVersion.getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false')
     jobs:
-      - job: BuildAndPush
-        steps:
-          - bash: |
-              repo_sha=$(git rev-parse --verify HEAD)
-              docker_image_tag_sha=${repo_sha:0:7}
-              last_commit_time=$(git log -1 --pretty='%cd' --date=iso | tr -d '+[:space:]:-' | head -c 14)
-              echo "##vso[task.setvariable variable=DOCKER_TAG;isOutput=true]${docker_image_tag_sha}-${last_commit_time}"
-            displayName: 'Get Docker Tag'
-            name: 'getDockerTag'
-          - task: Docker@1
-            displayName: 'Docker Login'
-            inputs:
-              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-              azureContainerRegistry: $(azureContainerRegistry)
-              command: login
-          - task: Docker@1
-            displayName: 'Build Docker Image'
-            inputs:
-              imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
-              command: build
-              Dockerfile: ./Dockerfile
-          - task: Docker@1
-            displayName: 'Push Docker Image'
-            inputs:
-              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-              azureContainerRegistry: $(azureContainerRegistry)
-              command: push
-              imageName: '$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
-          - task: Docker@1
-            displayName: 'Docker Logout'
-            inputs:
-              command: logout
+#      - job: BuildAndPush
+#        steps:
+#          - bash: |
+#              repo_sha=$(git rev-parse --verify HEAD)
+#              docker_image_tag_sha=${repo_sha:0:7}
+#              last_commit_time=$(git log -1 --pretty='%cd' --date=iso | tr -d '+[:space:]:-' | head -c 14)
+#              echo "##vso[task.setvariable variable=DOCKER_TAG;isOutput=true]${docker_image_tag_sha}-${last_commit_time}"
+#            displayName: 'Get Docker Tag'
+#            name: 'getDockerTag'
+#          - task: Docker@1
+#            displayName: 'Docker Login'
+#            inputs:
+#              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+#              azureContainerRegistry: $(azureContainerRegistry)
+#              command: login
+#          - task: Docker@1
+#            displayName: 'Build Docker Image'
+#            inputs:
+#              imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
+#              command: build
+#              Dockerfile: ./Dockerfile
+#          - task: Docker@1
+#            displayName: 'Push Docker Image'
+#            inputs:
+#              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+#              azureContainerRegistry: $(azureContainerRegistry)
+#              command: push
+#              imageName: '$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
+#          - task: Docker@1
+#            displayName: 'Docker Logout'
+#            inputs:
+#              command: logout
       - job: CleanUpAcrTags
         steps:
           - task: AzureCLI@2
