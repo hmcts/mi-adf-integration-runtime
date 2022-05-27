@@ -56,8 +56,10 @@ stages:
                 echo "The current SHIR version is: $current_version"
                 echo "The latest download link is: $current_link"
                 if [[ $current_link = *$current_version* ]]; then
+                  echo "Versions are matching."
                   echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]true";
                 else
+                  echo " Versions are different."
                   echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]false";
                 fi
   - stage: BuildAndPush
