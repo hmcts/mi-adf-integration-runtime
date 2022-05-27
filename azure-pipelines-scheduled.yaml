@@ -63,7 +63,7 @@ stages:
                 fi
   - stage: BuildAndPush
     dependsOn: CheckShirVersion
-    condition: eq("$[stageDependencies.CheckShirVersion.CheckShirVersion.outputs['getSelfHostedIrVersion.UP_TO_DATE_VERSION']]", "false")
+    condition: eq(stageDependencies.CheckShirVersion.CheckShirVersion.outputs['getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false')
     jobs:
       - job: BuildAndPush
         steps:
