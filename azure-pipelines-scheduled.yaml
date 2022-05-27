@@ -115,8 +115,9 @@ stages:
 
                 for tag in "${tag_list[@]}" ; do
                     current_tag=$(echo "$tag" | tr -d '"' | tr -d ',' | tr -d " ")
+                    echo "$(environment)"
                     echo "$current_tag"
-                    if [[ "$tag" == *"$environment"* ]]; then
+                    if [[ "$tag" == *"$(environment)"* ]]; then
                         count=$((count + 1))
                         if [[ $count -gt 3 ]] ; then
                             echo "About to delete $current_tag for being older than 3 versions."
