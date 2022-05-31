@@ -1,0 +1,100 @@
+name: HMCTS Management Information ADF Self Hosted Integration Runtime Image - Scheduled
+
+schedules:
+  - cron: "0 22 * * *"
+    displayName: Every day at 10pm
+    branches:
+      include:
+        - master
+    always: true
+
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'windows-2019'
+
+parameters:
+  - name: environment
+    displayName: Environment
+    type: string
+    default: 'dev'
+    values:
+      - 'sbox'
+      - 'dev'
+      - 'test'
+      - 'ithc'
+      - 'stg'
+      - 'prod'
+
+variables:
+  projectName: 'mi'
+  applicationName: 'adf-integration-runtime'
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    environment: 'prod'
+  ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}:
+    environment: ${{ parameters.environment }}
+  azureSubscriptionEndpoint: DTS-SHAREDSERVICES-${{ upper(variables['environment']) }}
+  azureContainerRegistry: 'sdshmctspublic.azurecr.io'
+
+stages:
+  - stage: CheckShirVersion
+    jobs:
+      - job: CheckShirVersion
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Get current Self-hosted IR version'
+            name: 'getSelfHostedIrVersion'
+            inputs:
+              azureSubscription: $(azureSubscriptionEndpoint)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az config set extension.use_dynamic_install=yes_without_prompt
+                current_version=$(az datafactory integration-runtime get-status --factory-name "mi-ingestion-adf-$(environment)" --name "IR-Self-Hosted" --resource-group "mi-$(environment)-rg" --query properties.version | tr -d '"')
+                current_link=$(curl -I "https://go.microsoft.com/fwlink/?linkid=839822" | grep Location)
+                echo "The current SHIR version is: $current_version"
+                echo "The latest download link is: $current_link"
+                if [[ $current_link = *$current_version* ]]; then
+                  echo "Versions are matching."
+                  echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]true";
+                else
+                  echo " Versions are different."
+                  echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]false";
+                fi
+  - stage: BuildAndPush
+    dependsOn: CheckShirVersion
+    condition: eq(dependencies.CheckShirVersion.outputs['CheckShirVersion.getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false')
+    jobs:
+      - job: BuildAndPush
+        steps:
+          - bash: |
+              repo_sha=$(git rev-parse --verify HEAD)
+              docker_image_tag_sha=${repo_sha:0:7}
+              last_commit_time=$(git log -1 --pretty='%cd' --date=iso | tr -d '+[:space:]:-' | head -c 14)
+              echo "##vso[task.setvariable variable=DOCKER_TAG;isOutput=true]${docker_image_tag_sha}-${last_commit_time}"
+            displayName: 'Get Docker Tag'
+            name: 'getDockerTag'
+          - task: Docker@1
+            displayName: 'Docker Login'
+            inputs:
+              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+              azureContainerRegistry: $(azureContainerRegistry)
+              command: login
+          - task: Docker@1
+            displayName: 'Build Docker Image'
+            inputs:
+              imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
+              command: build
+              Dockerfile: ./Dockerfile
+          - task: Docker@1
+            displayName: 'Push Docker Image'
+            inputs:
+              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+              azureContainerRegistry: $(azureContainerRegistry)
+              command: push
+              imageName: '$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
+          - task: Docker@1
+            displayName: 'Docker Logout'
+            inputs:
+              command: logout

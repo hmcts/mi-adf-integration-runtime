@@ -29,7 +29,7 @@ function SetupEnv() {
 
 function Install-Jre() {
     Write-Log "Begin to install the OpenJDK 11 runtime"
-    Invoke-WebRequest "https://api.adoptopenjdk.net/v3/installer/latest/11/ga/windows/x64/jdk/hotspot/normal/adoptopenjdk?project=jdk" -OutFile "C:\SHIR\OpenJdk11.msi"
+    Invoke-WebRequest "https://api.adoptium.net/v3/installer/latest/11/ga/windows/x64/jdk/hotspot/normal/eclipse?project=jdk" -OutFile "C:\SHIR\OpenJdk11.msi"
     Start-Process -Wait -FilePath msiexec -ArgumentList /i, "C:\SHIR\OpenJdk11.msi", "ADDLOCAL=FeatureMain,FeatureEnvironment,FeatureJarFileRunWith,FeatureJavaHome", 'INSTALLDIR="C:\Program Files\Java"', /quiet -Verb RunAs
     Write-Log "OpenJDK 11 installed successfully"
     [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Java", "Machine")
@@ -46,6 +46,7 @@ try {
     Install-Jre
     Install-NetFramework
     Install-SHIR
+    SetupEnv
 } catch {
     exit 1
 }

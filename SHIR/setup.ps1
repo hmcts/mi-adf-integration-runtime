@@ -135,7 +135,7 @@ Set-Environment-Varibles-From-Secrets
 # Register SHIR with key from Env Variable: AUTH_KEY
 if (Check-Is-Registered) {
     Write-Log "Restart the existing node"
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start -TurnOffAutoUpdate"
 } elseif (Test-Path Env:AUTH_KEY) {
     $IRAuthKey = (Get-Item Env:AUTH_KEY).Value
     $IRNodeName = (Get-Item Env:NODE_NAME).Value
@@ -146,7 +146,7 @@ if (Check-Is-Registered) {
     Write-Log "Registering SHIR with the node name: $($IRNodeName)"
     Write-Log "Registering SHIR with the enable high availability flag: $($IREnableHA)"
     Write-Log "Registering SHIR with the tcp port: $($IRHAPort)"
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start -TurnOffAutoUpdate"
     RegisterNewNode $IRAuthKey $IRNodeName $IREnableHA $IRHAPort
 } else {
     Write-Log "Invalid AUTH_KEY Value"
@@ -176,7 +176,7 @@ try {
             }
             if ($checkCount -gt 1) {
                 Write-Log "Restarting the existing node for failed check"
-                Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+                Start-Process $DmgcmdPath -Wait -ArgumentList "-Start -TurnOffAutoUpdate"
             }
             Start-Sleep -Seconds 20
         }
@@ -184,7 +184,7 @@ try {
 }
 finally {
     Write-Log "Stop the node connection"
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-Stop"
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-Stop -StopUpgradeService"
     Write-Log "Stop the node connection successfully"
     exit 0
 }
