@@ -35,6 +35,7 @@ variables:
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}:
     environment: ${{ parameters.environment }}
   azureSubscriptionEndpoint: DTS-SHAREDSERVICES-${{ upper(variables['environment']) }}
+  azureContainerRegistrySubscriptionEndpoint: DTS-SHAREDSERVICES-PROD
   azureContainerRegistry: 'sdshmctspublic.azurecr.io'
 
 stages:
@@ -78,7 +79,7 @@ stages:
           - task: Docker@1
             displayName: 'Docker Login'
             inputs:
-              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+              azureSubscriptionEndpoint: $(azureContainerRegistrySubscriptionEndpoint)
               azureContainerRegistry: $(azureContainerRegistry)
               command: login
           - ${{ if eq(variables['Build.SourceBranchName'], 'add-schedule-for-dev') }}:
@@ -91,7 +92,7 @@ stages:
             - task: Docker@1
               displayName: 'Push Docker Image for lower environments'
               inputs:
-                azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+                azureSubscriptionEndpoint: $(azureContainerRegistrySubscriptionEndpoint)
                 azureContainerRegistry: $(azureContainerRegistry)
                 command: push
                 imageName: '$(projectName)/$(applicationName):test-$(getDockerTag.DOCKER_TAG)'
@@ -104,7 +105,7 @@ stages:
           - task: Docker@1
             displayName: 'Push Docker Image'
             inputs:
-              azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+              azureSubscriptionEndpoint: $(azureContainerRegistrySubscriptionEndpoint)
               azureContainerRegistry: $(azureContainerRegistry)
               command: push
               imageName: '$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
@@ -112,3 +113,30 @@ stages:
             displayName: 'Docker Logout'
             inputs:
               command: logout
+      - job: CleanUpAcrTags
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Cleans historical tags for the current environment'
+            inputs:
+              azureSubscription: $(azureContainerRegistrySubscriptionEndpoint)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az acr login --name $(azureContainerRegistry)
+
+                IFS=$'\n'; set -f; tag_list=($(az acr repository show-tags --name $(azureContainerRegistry) --repository $(projectName)/$(applicationName) --orderby time_desc))
+
+                count=0
+
+                for tag in "${tag_list[@]}" ; do
+                    current_tag=$(echo "$tag" | tr -d '"' | tr -d ',' | tr -d " ")
+                    echo "$current_tag"
+                    if [[ "$tag" == *"$(environment)"* ]]; then
+                        count=$((count + 1))
+                        if [[ $count -gt 3 ]] ; then
+                            echo "About to delete $current_tag for being older than 3 versions."
+                            az acr repository delete --name $(azureContainerRegistry) --image $(projectName)/$(applicationName):$current_tag --yes
+                            echo "Successfully deleted $current_tag."
+                        fi
+                    fi
+                done
