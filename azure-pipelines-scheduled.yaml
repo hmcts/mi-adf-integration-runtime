@@ -84,16 +84,28 @@ stages:
           - task: Docker@1
             displayName: 'Build Docker Image'
             inputs:
-              imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
+              imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName)'
               command: build
               Dockerfile: ./Dockerfile
+          ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+            - task: Docker@1
+              displayName: 'Update lower environments docker image'
+              inputs:
+                azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+                azureContainerRegistry: $(azureContainerRegistry)
+                command: push
+                repository: '$(projectName)/$(applicationName)'
+                tags: |
+                  dev-$(getDockerTag.DOCKER_TAG)
           - task: Docker@1
             displayName: 'Push Docker Image'
             inputs:
               azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
               azureContainerRegistry: $(azureContainerRegistry)
               command: push
-              imageName: '$(projectName)/$(applicationName):$(environment)-$(getDockerTag.DOCKER_TAG)'
+              repository: '$(projectName)/$(applicationName)'
+              tags: |
+                $(environment)-$(getDockerTag.DOCKER_TAG)
           - task: Docker@1
             displayName: 'Docker Logout'
             inputs:
