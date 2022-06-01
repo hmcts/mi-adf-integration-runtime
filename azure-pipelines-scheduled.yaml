@@ -87,7 +87,7 @@ stages:
               imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName)'
               command: build
               Dockerfile: ./Dockerfile
-          ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+          - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
             - task: Docker@1
               displayName: 'Update lower environments docker image'
               inputs:
