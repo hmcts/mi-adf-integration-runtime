@@ -57,7 +57,7 @@ stages:
                 echo "The latest download link is: $current_link"
                 if [[ $current_link = *$current_version* ]]; then
                   echo "Versions are matching."
-                  echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]true";
+                  echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]false";
                 else
                   echo " Versions are different."
                   echo "##vso[task.setvariable variable=UP_TO_DATE_VERSION;isOutput=true]false";
@@ -87,7 +87,7 @@ stages:
               imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName)'
               command: build
               Dockerfile: ./Dockerfile
-          - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+          - ${{ if eq(variables['Build.SourceBranchName'], 'add-schedule-for-dev') }}:
             - task: Docker@1
               displayName: 'Update lower environments docker image'
               inputs:
@@ -96,7 +96,7 @@ stages:
                 command: push
                 repository: '$(projectName)/$(applicationName)'
                 tags: |
-                  dev-$(getDockerTag.DOCKER_TAG)
+                  test-$(getDockerTag.DOCKER_TAG)
           - task: Docker@1
             displayName: 'Push Docker Image'
             inputs:
