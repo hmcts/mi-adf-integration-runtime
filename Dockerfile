@@ -3,7 +3,8 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 ARG USER_UID=1000
 
 RUN net user /add $USER_UID
-RUN net localgroup docker-users $USER_ID /ADD
+RUN net localgroup docker-users /add
+RUN net localgroup docker-users $USER_ID /add
 
 USER $USER_UID
 
