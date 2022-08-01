@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 RUN net user /add ShirUser
 RUN net localgroup docker-users /add
+RUN net localgroup
 RUN net localgroup docker-users ShirUser /add
 
 USER ShirUser
