@@ -13,8 +13,6 @@ CMD ["powershell", "C:/SHIR/setup.ps1"]
 
 RUN net user /add ShirUser
 RUN net localgroup docker-users /add
-
-RUN net localgroup Users ShirUser /add
 RUN net localgroup docker-users ShirUser /add
 
 USER ShirUser
