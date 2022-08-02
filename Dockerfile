@@ -15,6 +15,8 @@ RUN net user /add ShirUser
 RUN net localgroup docker-users /add
 RUN net localgroup docker-users ShirUser /add
 
+RUN icacls "C:\" /grant ShirUser:(OI)(CI)F /T
+
 USER ShirUser
 
 ENV SHIR_WINDOWS_CONTAINER_ENV True
