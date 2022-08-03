@@ -20,7 +20,6 @@ RUN dir /s
 RUN icacls "C:\\Program Files\\Java" /grant ShirUser:(OI)(CI)F /T
 RUN icacls "C:\\Program Files\\Microsoft Integration Runtime" /grant ShirUser:(OI)(CI)F /T
 
-RUN icacls "C:\\ProgramData" /grant ShirUser:(OI)(CI)F /T
 RUN icacls "C:\\SHIR" /grant ShirUser:(OI)(CI)F /T
 RUN icacls "C:\\Users" /grant ShirUser:(OI)(CI)F /T
 
