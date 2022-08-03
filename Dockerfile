@@ -17,7 +17,6 @@ RUN net localgroup docker-users ShirUser /add
 
 RUN icacls "C:\\Program Files\\Java" /grant ShirUser:(OI)(CI)F /T
 RUN icacls "C:\\Program Files\\Microsoft Integration Runtime" /grant ShirUser:(OI)(CI)F /T
-RUN icacls "C:\\Program Files\\WindowsPowerShell" /grant ShirUser:(OI)(CI)F /T
 
 RUN icacls "C:\\Program Files (x86)" /grant ShirUser:(OI)(CI)F /T
 RUN icacls "C:\\ProgramData" /grant ShirUser:(OI)(CI)F /T
