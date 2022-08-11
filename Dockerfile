@@ -12,7 +12,7 @@ RUN ["powershell", "C:/SHIR/build.ps1"]
 CMD ["powershell", "C:/SHIR/setup.ps1"]
 
 RUN net user /add ShirUser
-RUN net localgroup Administrators /add
+RUN net localgroup Administrators ShirUser /add
 RUN net localgroup docker-users /add
 RUN net localgroup docker-users ShirUser /add
 
