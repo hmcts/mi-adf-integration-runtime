@@ -11,6 +11,7 @@ RUN ["powershell", "C:/SHIR/build.ps1"]
 
 CMD ["powershell", "C:/SHIR/setup.ps1"]
 
+RUN icacls "C:/" /grant ContainerUser:(OI)(CI)F
 USER ContainerUser
 
 ENV SHIR_WINDOWS_CONTAINER_ENV True
