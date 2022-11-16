@@ -71,8 +71,8 @@ stages:
           - bash: |
               repo_sha=$(git rev-parse --verify HEAD)
               docker_image_tag_sha=${repo_sha:0:7}
-              last_commit_time=$(git log -1 --pretty='%cd' --date=iso | tr -d '+[:space:]:-' | head -c 14)
-              echo "##vso[task.setvariable variable=DOCKER_TAG;isOutput=true]${docker_image_tag_sha}-${last_commit_time}"
+              current_date_time=$(date "+%Y%m%d%H%M%S")
+              echo "##vso[task.setvariable variable=DOCKER_TAG;isOutput=true]${docker_image_tag_sha}-${current_date_time}"
             displayName: 'Get Docker Tag'
             name: 'getDockerTag'
           - task: Docker@1
