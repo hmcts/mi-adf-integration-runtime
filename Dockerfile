@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
 # Download the latest self-hosted integration runtime installer into the SHIR folder
 COPY SHIR C:/SHIR/
@@ -10,6 +10,8 @@ RUN ["powershell", "C:/SHIR/validate.ps1"]
 RUN ["powershell", "C:/SHIR/build.ps1"]
 
 CMD ["powershell", "C:/SHIR/setup.ps1"]
+
+USER ContainerUser
 
 ENV SHIR_WINDOWS_CONTAINER_ENV True
 
