@@ -1,4 +1,5 @@
 Import-Module $PSScriptRoot\library.ps1
+Import-Module $PSScriptRoot\oracle-connections.ps1
 Import-Module $PSScriptRoot\secrets-setup.ps1
 
 $DmgcmdPath = Get-CmdFilePath
@@ -128,6 +129,9 @@ function RegisterNewNode {
         $StdErrResult | ForEach-Object { Write-Log $_ }
     }
 }
+
+# Setup tnsnames.ora file for any multi instance Oracle connections
+Add-Tns-Secrets-To-Names-File
 
 # Setup env from secrets
 Set-Environment-Varibles-From-Secrets
