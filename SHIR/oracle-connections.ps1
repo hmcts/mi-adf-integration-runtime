@@ -5,12 +5,12 @@ $SecretsList = @(
 )
 
 function Add-Tns-Secrets-To-Names-File() {
-    if (Test-Path Env:SECRETS_MOUNT_PATH) {
+    if (Test-Path "Env:SECRETS_MOUNT_PATH") {
         foreach ($TnsSecret in $SecretsList) {
-            $SecretFilePath = ${Env:SECRETS_MOUNT_PATH} + "\" + ${TnsSecret}
+            $SecretFilePath = "${Env:SECRETS_MOUNT_PATH}" + "\" + "${TnsSecret}"
             if (Test-Path -Path "${SecretFilePath}" -PathType Leaf) {
                 Write-Log "Adding value of ${TnsSecret} to tnsnames file."
-                $TnsValue = Get-Content ${SecretFilePath}
+                $TnsValue = Get-Content "${SecretFilePath}"
                 Add-Content "C:\SHIR\tnsnames.ora" "$([Environment]::NewLine)${TnsValue}"
             }
             else {
