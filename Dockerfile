@@ -4,6 +4,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 COPY SHIR C:/SHIR/
 
 RUN ["powershell", "cp C:/SHIR/config/hosts C:/windows/system32/drivers/etc/hosts"]
+RUN ["powershell", "cp C:/SHIR/config/tnsnames.ora C:/SHIR/tnsnames.ora"]
 
 RUN ["powershell", "C:/SHIR/validate.ps1"]
 
