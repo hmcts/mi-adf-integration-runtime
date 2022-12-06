@@ -47,8 +47,8 @@ stages:
           - ${{ if parameters.fortifyScan }}:
             - template: pipeline-steps/templates/steps/fortify-scan.yaml@mi-core
               parameters:
-                azureSubscriptionEndpoint: $(testAzureSubscriptionEndpoint)
-                azureVault: $(testVaultName)
+                azureSubscriptionEndpoint: $(devAzureSubscriptionEndpoint)
+                azureVault: $(devVaultName)
                 applicationName: $(projectName)-$(applicationName)
                 qualityGateLevel: ${{ parameters.fortifyQualityGateLevel }}
           - bash: |
