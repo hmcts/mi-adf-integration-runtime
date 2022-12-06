@@ -10,6 +10,14 @@ parameters:
     displayName: Push Docker Image To ACR
     type: boolean
     default: false
+  - name: fortifyScan
+    displayName: Run Fortify scan
+    type: boolean
+    default: true
+  - name: fortifyQualityGateLevel
+    displayName: Fortify quality gate level (0 for non-blocking)
+    type: number
+    default: 1
 
 variables:
   projectName: 'mi'
@@ -20,12 +28,22 @@ variables:
     deployTarget: prod
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}: 
     deployTarget: dev
+  devAzureSubscriptionEndpoint: 'DTS-SHAREDSERVICES-DEV'
+  devVaultName: 'mi-vault-dev'
 
 stages:
   - stage: BuildAndPush
     jobs:
+      
       - job: BuildAndPush
         steps:
+          - ${{ if parameters.fortifyScan }}:
+            - template: pipeline-steps/templates/steps/fortify-scan.yaml@mi-core
+              parameters:
+                azureSubscriptionEndpoint: $(testAzureSubscriptionEndpoint)
+                azureVault: $(testVaultName)
+                applicationName: $(projectName)-$(applicationName)
+                qualityGateLevel: ${{ parameters.fortifyQualityGateLevel }}
           - bash: |
               repo_sha=$(git rev-parse --verify HEAD)
               docker_image_tag_sha=${repo_sha:0:7}
