@@ -30,6 +30,13 @@ variables:
     deployTarget: dev
   devAzureSubscriptionEndpoint: 'DTS-SHAREDSERVICES-DEV'
   devVaultName: 'mi-vault-dev'
+  
+resources:
+  repositories:
+    - repository: mi-core
+      type: github
+      name: hmcts/mi-core-lib
+      endpoint: hmcts
 
 stages:
   - stage: BuildAndPush
