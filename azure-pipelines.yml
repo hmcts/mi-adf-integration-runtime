@@ -6,18 +6,6 @@ pool:
   vmImage: 'windows-2019'
 
 parameters:
-  - name: integrationEnv
-    displayName: Integration Environment
-    type: string
-    default: 'default'
-    values:
-      - 'default'
-      - 'sbox'
-      - 'dev'
-      - 'test'
-      - 'ithc'
-      - 'stg'
-      - 'prod'
   - name: pushImage
     displayName: Push Docker Image To ACR
     type: boolean
@@ -49,27 +37,20 @@ variables:
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}: 
     deployTarget: dev
   azureSubscriptionName: 'DTS-SHAREDSERVICES'
-  ${{ if eq(parameters.integrationEnv, 'default') }}:
-    ${{ if eq(variables['build.sourceBranch'], 'refs/heads/master') }}:
-      integrationEnvironment: 'stg'
-    ${{ if ne(variables['build.sourceBranch'], 'refs/heads/master') }}:
-      integrationEnvironment: 'test'
-  ${{ if ne(parameters.integrationEnv, 'default') }}:
-    integrationEnvironment: ${{ parameters.integrationEnv }}
 
 stages:
+  - ${{ if parameters.fortifyScan }}:
+    - template: pipeline-steps/templates/run-fortify-scan.yaml@mi-core
+      parameters:
+        azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-TEST"
+        azureVault: "mi-vault-test"
+        vaultAgentPool: "hmcts-ss-test"
+        applicationName: "$(projectName)-$(applicationName)"
+        qualityGateLevel: ${{ parameters.fortifyQualityGateLevel }}
+        technologyStack: 'JS/TS/HTML'
+        technologyVersion: ''
   - stage: BuildAndPush
     jobs:
-      - ${{ if parameters.fortifyScan }}:
-        - template: pipeline-steps/templates/jobs/fortify-scan-job.yaml@mi-core
-          parameters:
-            azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-${{ upper(variables.integrationEnvironment) }}"
-            azureVault: "mi-vault-${{ lower(variables.integrationEnvironment) }}"
-            vaultAgentPool: "hmcts-ss-${{ lower(variables.integrationEnvironment) }}"
-            applicationName: "$(projectName)-$(applicationName)"
-            qualityGateLevel: ${{ parameters.fortifyQualityGateLevel }}
-            technologyStack: 'JS/TS/HTML'
-            technologyVersion: ''
       - job: BuildAndPush
         steps:
           - bash: |
