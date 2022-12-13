@@ -17,7 +17,7 @@ parameters:
   - name: fortifyQualityGateLevel
     displayName: Fortify quality gate level (0 for non-blocking)
     type: number
-    default: 1
+    default: 2
 
 resources:
   repositories:
