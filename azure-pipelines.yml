@@ -31,6 +31,14 @@ parameters:
     type: number
     default: 1
 
+resources:
+  repositories:
+    - repository: mi-core
+      type: github
+      name: hmcts/mi-core-lib
+      endpoint: hmcts
+      ref: master
+
 variables:
   projectName: 'mi'
   applicationName: 'adf-integration-runtime'
