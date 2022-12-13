@@ -25,7 +25,7 @@ function SetupEnv() {
     $DmgcmdPath = Get-CmdFilePath
     Start-Process $DmgcmdPath -Wait -ArgumentList "-Stop -StopUpgradeService -TurnOffAutoUpdate"
 
-    $DiaWpConfigPath = Get-DiaWpConfigPath
+    $DiaWpConfigPath = Get-DiaWpConfigFilePath
     $diaWpConfig = [System.Xml.XmlDocument](Get-Content $DiaWpConfigPath);
     $runtimeNode = $diawpConfig.selectSingleNode("configuration/runtime")
     $allowLargeObjectsNode = $runtimeNode.AppendChild($diaWpConfig.createElement("gcAllowVeryLargeObjects"))
