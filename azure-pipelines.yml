@@ -10,6 +10,14 @@ parameters:
     displayName: Push Docker Image To ACR
     type: boolean
     default: false
+  - name: fortifyScan
+    displayName: Run Fortify scan
+    type: boolean
+    default: true
+  - name: fortifyQualityGateLevel
+    displayName: Fortify quality gate level (0 for non-blocking)
+    type: number
+    default: 1
 
 variables:
   projectName: 'mi'
