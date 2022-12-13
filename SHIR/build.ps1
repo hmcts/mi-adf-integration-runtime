@@ -24,6 +24,14 @@ function SetupEnv() {
     Write-Log "Begin to setup the SHIR environment"
     $DmgcmdPath = Get-CmdFilePath
     Start-Process $DmgcmdPath -Wait -ArgumentList "-Stop -StopUpgradeService -TurnOffAutoUpdate"
+
+    $DiaWpConfigPath = Get-DiaWpConfigPath
+    $diaWpConfig = [System.Xml.XmlDocument](Get-Content $DiaWpConfigPath);
+    $runtimeNode = $diawpConfig.selectSingleNode("configuration/runtime")
+    $allowLargeObjectsNode = $runtimeNode.AppendChild($diaWpConfig.createElement("gcAllowVeryLargeObjects"))
+    $allowLargeObjectsNode.SetAttribute("enabled", "true")
+    $diaWpConfig.save($DiaWpConfigPath)
+
     Write-Log "SHIR environment setup successfully"
 }
 
