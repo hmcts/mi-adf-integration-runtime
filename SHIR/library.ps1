@@ -32,6 +32,11 @@ function Get-CmdFilePath()
     return "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
 }
 
+function Get-DiaWpConfigFilePath()
+{
+    return "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\diawp.exe.config"
+}
+
 function Get-RedirectedUrl 
 {
     # Latest version link
