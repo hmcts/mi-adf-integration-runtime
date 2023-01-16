@@ -26,16 +26,18 @@ variables:
   azureContainerRegistry: 'sdshmctspublic.azurecr.io'
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}: 
     deployTarget: prod
+    fortifyTarget: stg
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}: 
     deployTarget: dev
+    fortifyTarget: dev
   azureSubscriptionName: 'DTS-SHAREDSERVICES'
 
 stages:
   - template: pipeline-steps/templates/run-fortify-scan.yaml@mi-core
     parameters:
-      azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-${{ upper(variables.deployTarget) }}"
-      azureVault: "mi-vault-${{ variables.deployTarget }}"
-      vaultAgentPool: "hmcts-ss-${{ variables.deployTarget }}"
+      azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-${{ upper(variables.fortifyTarget) }}"
+      azureVault: "mi-vault-${{ variables.fortifyTarget }}"
+      vaultAgentPool: "hmcts-ss-${{ variables.fortifyTarget }}"
       applicationName: "$(projectName)-$(applicationName)"
   - stage: BuildAndPush
     jobs:
