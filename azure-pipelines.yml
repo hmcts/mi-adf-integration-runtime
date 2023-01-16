@@ -10,14 +10,6 @@ parameters:
     displayName: Push Docker Image To ACR
     type: boolean
     default: false
-  - name: fortifyScan
-    displayName: Run Fortify scan
-    type: boolean
-    default: true
-  - name: fortifyQualityGateLevel
-    displayName: Fortify quality gate level (0 for non-blocking)
-    type: number
-    default: 2
 
 resources:
   repositories:
@@ -39,16 +31,12 @@ variables:
   azureSubscriptionName: 'DTS-SHAREDSERVICES'
 
 stages:
-  - ${{ if parameters.fortifyScan }}:
-    - template: pipeline-steps/templates/run-fortify-scan.yaml@mi-core
-      parameters:
-        azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-TEST"
-        azureVault: "mi-vault-test"
-        vaultAgentPool: "hmcts-ss-test"
-        applicationName: "$(projectName)-$(applicationName)"
-        qualityGateLevel: ${{ parameters.fortifyQualityGateLevel }}
-        technologyStack: 'JS/TS/HTML'
-        technologyVersion: ''
+  - template: pipeline-steps/templates/run-fortify-scan.yaml@mi-core
+    parameters:
+      azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-${{ upper(variables.deployTarget) }}"
+      azureVault: "mi-vault-${{ variables.deployTarget }}"
+      vaultAgentPool: "hmcts-ss-${{ variables.deployTarget }}"
+      applicationName: "$(projectName)-$(applicationName)"
   - stage: BuildAndPush
     jobs:
       - job: BuildAndPush
