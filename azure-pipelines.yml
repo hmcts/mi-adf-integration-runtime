@@ -28,7 +28,7 @@ variables:
     deployTarget: prod
     fortifyTarget: stg
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}: 
-    deployTarget: dev
+    deployTarget: prod
     fortifyTarget: dev
   azureSubscriptionName: 'DTS-SHAREDSERVICES'
 
