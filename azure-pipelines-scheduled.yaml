@@ -15,6 +15,9 @@ pool:
   vmImage: 'windows-2019'
 
 parameters:
+  - name: enabled
+    type: boolean
+    default: false # Latest SHIR version is broken on our AKS setup. Change to true when fixed.
   - name: environment
     displayName: Environment
     type: string
@@ -64,7 +67,7 @@ stages:
                 fi
   - stage: BuildAndPush
     dependsOn: CheckShirVersion
-    condition: eq(dependencies.CheckShirVersion.outputs['CheckShirVersion.getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false')
+    condition: and(parameters.enabled, eq(dependencies.CheckShirVersion.outputs['CheckShirVersion.getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false'))
     jobs:
       - job: BuildAndPush
         steps:
