@@ -1,8 +1,8 @@
 name: HMCTS Management Information ADF Self Hosted Integration Runtime Image - Scheduled
 
 schedules:
-  - cron: "0 22 * * *"
-    displayName: Every day at 10pm
+  - cron: "0 10 * * 1-5"
+    displayName: Every weekday at 10am
     branches:
       include:
         - master
