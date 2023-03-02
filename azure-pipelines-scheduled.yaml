@@ -67,7 +67,7 @@ stages:
                 fi
   - stage: BuildAndPush
     dependsOn: CheckShirVersion
-    condition: and(parameters.enabled, eq(dependencies.CheckShirVersion.outputs['CheckShirVersion.getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false'))
+    condition: and(eq('${{ parameters.doThing }}', true), eq(dependencies.CheckShirVersion.outputs['CheckShirVersion.getSelfHostedIrVersion.UP_TO_DATE_VERSION'], 'false'))
     jobs:
       - job: BuildAndPush
         steps:
