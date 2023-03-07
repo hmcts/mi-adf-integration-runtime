@@ -68,6 +68,15 @@ spec:
               mountPath: {{ .Values.secretsMountPath }}
               readOnly: true
           {{ end }}
+          livenessProbe:
+            exec:
+              command:
+              - powershell
+              - C:/SHIR/health-check.ps1
+            initialDelaySeconds: 60
+            timeoutSeconds: 60
+            periodSeconds: 60
+            failureThreshold: 3
           resources:
             requests:
               memory: {{ .Values.memoryRequests }}
