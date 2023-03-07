@@ -1,4 +1,4 @@
-Version pinned as latest version breaks connectivity.
+Version pinned to 5.25.8404.1 as latest version breaks connectivity.
 
 Note: Initial code from https://github.com/Azure/Azure-Data-Factory-Integration-Runtime-in-Windows-Container
 
