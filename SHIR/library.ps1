@@ -110,5 +110,7 @@ function Get-LatestGatewayVersion()
 
     $msg = "Latest gateway version is: " + $version
     Write-Log $msg
-    return $version
+    $additionalMsg = "However using fixed version: 5.25.8404.1"
+    Write-Log $additionalMsg
+    return "5.25.8404.1"
 }
