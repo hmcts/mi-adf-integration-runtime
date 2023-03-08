@@ -17,5 +17,6 @@ RUN net localgroup "Administrators" "User Manager\ContainerUser" /add
 USER ContainerUser
 
 ENV SHIR_WINDOWS_CONTAINER_ENV True
+ENV JAVA_TOOL_OPTIONS "-Xms1024m -Xmx2048m"
 
 HEALTHCHECK --start-period=120s CMD ["powershell", "C:/SHIR/health-check.ps1"]
