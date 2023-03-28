@@ -1,7 +1,7 @@
 Import-Module $PSScriptRoot\library.ps1
 
 $SecretsMap = @{
-    "mi-adf-auth-key" = "AUTH_KEY"
+    "mi-adf-test-auth-key" = "AUTH_KEY"
 }
 
 function Set-Environment-Variables-From-Secrets() {
