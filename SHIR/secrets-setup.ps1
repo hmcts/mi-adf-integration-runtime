@@ -4,7 +4,7 @@ $SecretsMap = @{
     "mi-adf-auth-key" = "AUTH_KEY"
 }
 
-function Set-Environment-Varibles-From-Secrets() {
+function Set-Environment-Variables-From-Secrets() {
     if (Test-Path Env:SECRETS_MOUNT_PATH) {
         $SecretsMountPath = (Get-Item Env:SECRETS_MOUNT_PATH).Value
         Write-Log "Getting secrets from KeyVault Mount: $($SecretsMountPath)"
