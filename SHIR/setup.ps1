@@ -1,12 +1,8 @@
+Import-Module $PSScriptRoot\library.ps1
 Import-Module $PSScriptRoot\oracle-connections.ps1
 Import-Module $PSScriptRoot\secrets-setup.ps1
 
 $DmgcmdPath = "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
-
-function Write-Log($Message) {
-    function TS { Get-Date -Format 'MM/dd/yyyy HH:mm:ss' }
-    Write-Host "[$(TS)] $Message"
-}
 
 function Check-Is-Registered() {
     $result = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\DataTransfer\DataManagementGateway\ConfigurationManager' -Name HaveRun -ErrorAction SilentlyContinue

@@ -6,6 +6,7 @@ Import-Module $PSScriptRoot\library.ps1
 try {
     Write-Log "Validating powershell scripts in SHIR."
 
+    Get-Command -syntax "$PSScriptRoot\library.ps1"
     Get-Command -syntax "$PSScriptRoot\build.ps1"
     Get-Command -syntax "$PSScriptRoot\health-check.ps1"
     Get-Command -syntax "$PSScriptRoot\oracle-connections.ps1"
