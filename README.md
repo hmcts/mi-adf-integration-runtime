@@ -1,5 +1,3 @@
-Version pinned to 5.25.8404.1 as latest version breaks connectivity.
-
 Note: Initial code from https://github.com/Azure/Azure-Data-Factory-Integration-Runtime-in-Windows-Container
 
 Note: Helm release charts are currently active at https://github.com/hmcts/mi-adf-shir.
@@ -7,6 +5,8 @@ Note: Helm release charts are currently active at https://github.com/hmcts/mi-ad
 Azure Data Factory Integration Runtime in Windows Container Sample
 =======
 This repo contains the sample for running the Azure Data Factory Integration Runtime in Windows Container
+
+Support SHIR version: 5.0 or later
 
 For more information about Azure Data Factory, see [https://docs.microsoft.com/en-us/azure/data-factory/concepts-integration-runtime](https://docs.microsoft.com/en-us/azure/data-factory/concepts-integration-runtime)
 

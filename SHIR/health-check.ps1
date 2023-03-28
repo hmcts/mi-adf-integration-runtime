@@ -1,6 +1,4 @@
-Import-Module $PSScriptRoot\library.ps1
-
-$DmgcmdPath = Get-CmdFilePath
+$DmgcmdPath = "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
 
 function Check-Node-Connection() {
     Start-Process $DmgcmdPath -Wait -ArgumentList "-cgc" -RedirectStandardOutput "C:\SHIR\status-check.txt"
@@ -11,7 +9,6 @@ function Check-Node-Connection() {
         return $TRUE
     }
     else {
-        Write-Log "Health check shows disconnected"
         exit 1
     }
 }

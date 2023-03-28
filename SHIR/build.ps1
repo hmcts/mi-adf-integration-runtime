@@ -1,38 +1,38 @@
 Import-Module $PSScriptRoot\library.ps1
 
+$DmgcmdPath = "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
+
 function Install-SHIR() {
     Write-Log "Install the Self-hosted Integration Runtime in the Windows container"
 
-    $VersionToInstall = Get-LatestGatewayVersion
-    $IntegrationRuntimeFiles = (Get-ChildItem -Path "$PSScriptRoot" | Sort-Object LastWriteTime -Descending | Where-Object { $_.Name -match [regex] "IntegrationRuntime_$VersionToInstall.*.msi" })
-
-    if (-Not $IntegrationRuntimeFiles)
-    {
-        Download-GatewayInstaller $VersionToInstall
+    $MsiFiles = (Get-ChildItem -Path C:\SHIR | Where-Object { $_.Name -match [regex] "IntegrationRuntime.*.msi" })
+    if ($MsiFiles) {
+        $MsiFileName = $MsiFiles[0].Name
+        Write-Log "Using SHIR MSI file: $MsiFileName"
     }
-    
-    $MsiFileName = (Get-ChildItem -Path "$PSScriptRoot" | Sort-Object LastWriteTime -Descending | Where-Object { $_.Name -match [regex] "IntegrationRuntime_$VersionToInstall.*.msi" })[0].Name
-    Start-Process msiexec.exe -Wait -ArgumentList "/i $PSScriptRoot\$MsiFileName /qn"
+    else {
+        Write-Log "Downloading latest version of SHIR MSI file"
+        $MsiFileName = 'IntegrationRuntime.latest.msi'
+
+        # Temporarily disable progress updates to speed up the download process. (See https://stackoverflow.com/questions/69942663/invoke-webrequest-progress-becomes-irresponsive-paused-while-downloading-the-fil)
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=839822&clcid=0x409' -OutFile "C:\SHIR\$MsiFileName"
+        $ProgressPreference = 'Continue'
+    }
+
+    Write-Log "Installing SHIR"
+    Start-Process msiexec.exe -Wait -ArgumentList "/i C:\SHIR\$MsiFileName /qn"
     if (!$?) {
-        Write-Log "SHIR MSI install failed"
+        Write-Log "SHIR MSI Install Failed"
     }
 
-    Write-Log "SHIR MSI installed successfully"
+    Write-Log "SHIR MSI Install Successfully"
 }
 
 function SetupEnv() {
-    Write-Log "Begin to setup the SHIR environment"
-    $DmgcmdPath = Get-CmdFilePath
+    Write-Log "Begin to Setup the SHIR Environment"
     Start-Process $DmgcmdPath -Wait -ArgumentList "-Stop -StopUpgradeService -TurnOffAutoUpdate"
-
-    $DiaWpConfigPath = Get-DiaWpConfigFilePath
-    $diaWpConfig = [System.Xml.XmlDocument](Get-Content $DiaWpConfigPath);
-    $runtimeNode = $diawpConfig.selectSingleNode("configuration/runtime")
-    $allowLargeObjectsNode = $runtimeNode.AppendChild($diaWpConfig.createElement("gcAllowVeryLargeObjects"))
-    $allowLargeObjectsNode.SetAttribute("enabled", "true")
-    $diaWpConfig.save($DiaWpConfigPath)
-
-    Write-Log "SHIR environment setup successfully"
+    Write-Log "SHIR Environment Setup Successfully"
 }
 
 function Install-Jre() {
@@ -55,7 +55,6 @@ try {
     Install-Jre
     Install-NetFramework
     Install-SHIR
-    SetupEnv
 } catch {
     exit 1
 }
