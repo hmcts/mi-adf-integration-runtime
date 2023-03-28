@@ -27,17 +27,6 @@ function Install-SHIR() {
     }
 
     Write-Log "SHIR MSI Install Successfully"
-
-    Write-Log "Setting up SHIR configuration"
-
-    $DiaWpConfigPath = Get-DiaWpConfigFilePath
-    $diaWpConfig = [System.Xml.XmlDocument](Get-Content $DiaWpConfigPath);
-    $runtimeNode = $diawpConfig.selectSingleNode("configuration/runtime")
-    $allowLargeObjectsNode = $runtimeNode.AppendChild($diaWpConfig.createElement("gcAllowVeryLargeObjects"))
-    $allowLargeObjectsNode.SetAttribute("enabled", "true")
-    $diaWpConfig.save($DiaWpConfigPath)
-
-    Write-Log "Finished setup of SHIR configuration"
 }
 
 function SetupEnv() {
