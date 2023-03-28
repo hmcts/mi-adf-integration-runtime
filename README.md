@@ -1,3 +1,7 @@
+Note: Initial code from https://github.com/Azure/Azure-Data-Factory-Integration-Runtime-in-Windows-Container
+
+Note: Helm release charts are currently active at https://github.com/hmcts/mi-adf-shir.
+
 Azure Data Factory Integration Runtime in Windows Container Sample
 =======
 This repo contains the sample for running the Azure Data Factory Integration Runtime in Windows Container

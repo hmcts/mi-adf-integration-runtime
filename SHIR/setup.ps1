@@ -1,3 +1,6 @@
+Import-Module $PSScriptRoot\oracle-connections.ps1
+Import-Module $PSScriptRoot\secrets-setup.ps1
+
 $DmgcmdPath = "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
 
 function Write-Log($Message) {
@@ -67,6 +70,14 @@ function RegisterNewNode {
         $StdErrResult | ForEach-Object { Write-Log $_ }
     }
 }
+
+### Begin setup
+
+# Setup tnsnames.ora file for any multi instance Oracle connections
+Add-Tns-Secrets-To-Names-File
+
+# Setup env from secrets
+Set-Environment-Variables-From-Secrets
 
 # Register SHIR with key from Env Variable: AUTH_KEY
 if (Check-Is-Registered) {
