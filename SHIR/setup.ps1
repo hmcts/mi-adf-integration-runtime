@@ -43,8 +43,8 @@ function Check-Is-Connected() {
         return $TRUE
     }
     
-    Write-Host "Node is not connected: output - $($ConnectionResult)"
-    Write-Host "Error if any: $($ConnectionError)"
+    Write-Log "Node is not connected: output - $($ConnectionResult)"
+    Write-Log "Error if any: $($ConnectionError)"
     return $FALSE
 }
 
@@ -148,7 +148,7 @@ try {
             }
         }
 
-        if (Check-Main-Process -and Check-Is-Connected) {
+        if ((Check-Main-Process) -and (Check-Is-Connected)) {
             $COUNT = 0
         } else {
             Write-Log "Waiting for main process to start or registration to complete"
