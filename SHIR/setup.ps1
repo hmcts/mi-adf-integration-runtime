@@ -119,12 +119,12 @@ try {
             }
         }
 
-        if (Check-Main-Process) {
+        if (Check-Main-Process -and Check-Is-Registered) {
             $COUNT = 0
         } else {
             $COUNT += 1
             if ($COUNT -gt 5) {
-                throw "Diahost.exe is not running"  
+                throw "Diahost.exe is not running or not registered"  
             }
         }
 
