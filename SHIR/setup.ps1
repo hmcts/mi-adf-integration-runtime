@@ -43,8 +43,8 @@ function Check-Is-Connected() {
         return $TRUE
     }
     
-    Write-Log "Node is not connected: output - $($ConnectionResult)"
-    Write-Log "Error if any: $($ConnectionError)"
+    Write-Host "Node is not connected: output - $($ConnectionResult)"
+    Write-Host "Error if any: $($ConnectionError)"
     return $FALSE
 }
 
@@ -91,6 +91,38 @@ function RegisterNewNode {
     }
 }
 
+function Setup-SHIR() {
+    if (Check-Is-Registered) {
+        Write-Log "Restart the existing node"
+
+        if ($ENABLE_HA -eq "true") {
+            Write-Log "Enable High Availability"
+            $PORT = $HA_PORT
+            if (!$HA_PORT) {
+                $PORT = "8060"
+            }
+            Write-Log "Remote Access Port: $($PORT)"
+            Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+            Start-Sleep -Seconds 15
+        }
+
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+    } elseif (Test-Path Env:AUTH_KEY) {
+        Write-Log "Registering SHIR node with the node key: $($Env:AUTH_KEY)"
+        Write-Log "Registering SHIR node with the node name: $($Env:NODE_NAME)"
+        Write-Log "Registering SHIR node with the enable high availability flag: $($Env:ENABLE_HA)"
+        Write-Log "Registering SHIR node with the tcp port: $($Env:HA_PORT)"
+
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+
+        RegisterNewNode $Env:AUTH_KEY $Env:NODE_NAME $Env:ENABLE_HA $Env:HA_PORT
+    } else {
+        Write-Log "Invalid AUTH_KEY Value"
+        exit 1
+    }
+}
+
+
 ### Begin setup
 
 # Setup tnsnames.ora file for any multi instance Oracle connections
@@ -100,34 +132,7 @@ Add-Tns-Secrets-To-Names-File
 Set-Environment-Variables-From-Secrets
 
 # Register SHIR with key from Env Variable: AUTH_KEY
-if (Check-Is-Registered) {
-    Write-Log "Restart the existing node"
-
-    if ($ENABLE_HA -eq "true") {
-        Write-Log "Enable High Availability"
-        $PORT = $HA_PORT
-        if (!$HA_PORT) {
-            $PORT = "8060"
-        }
-        Write-Log "Remote Access Port: $($PORT)"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
-        Start-Sleep -Seconds 15
-    }
-
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-} elseif (Test-Path Env:AUTH_KEY) {
-    Write-Log "Registering SHIR node with the node key: $($Env:AUTH_KEY)"
-    Write-Log "Registering SHIR node with the node name: $($Env:NODE_NAME)"
-    Write-Log "Registering SHIR node with the enable high availability flag: $($Env:ENABLE_HA)"
-    Write-Log "Registering SHIR node with the tcp port: $($Env:HA_PORT)"
-    
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-
-    RegisterNewNode $Env:AUTH_KEY $Env:NODE_NAME $Env:ENABLE_HA $Env:HA_PORT
-} else {
-    Write-Log "Invalid AUTH_KEY Value"
-    exit 1
-}
+Setup-SHIR
 
 Write-Log "Waiting 60 seconds for connecting"
 Start-Sleep -Seconds 60
@@ -146,7 +151,12 @@ try {
         if (Check-Main-Process -and Check-Is-Connected) {
             $COUNT = 0
         } else {
+            Write-Log "Waiting for main process to start or registration to complete"
             $COUNT += 1
+            if ($COUNT -eq 3) {
+                Write-Log "Retrying setup"
+                Setup-SHIR
+            }
             if ($COUNT -gt 5) {
                 throw "Diahost.exe is not running or not connected"  
             }
