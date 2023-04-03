@@ -23,7 +23,7 @@ function Check-Main-Process() {
     return $FALSE
 }
 
-function Check-Is-Connected() {
+function Get-Connection-Status() {
     $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
     $processStartInfo.FileName = $DmgcmdPath
     $processStartInfo.RedirectStandardError = $true
@@ -39,13 +39,11 @@ function Check-Is-Connected() {
     $ConnectionResult = $process.StandardOutput.ReadToEnd() -replace "`t|`n|`r",""
     $ConnectionError = $process.StandardError.ReadToEnd()
     
-    if ($ConnectionResult -like "Connected") {
-        return $TRUE
+    if ($ConnectionError) {
+        Write-Log "Error raised: $($ConnectionError)"
     }
     
-    Write-Log "Node is not connected: output - $($ConnectionResult)"
-    Write-Log "Error if any: $($ConnectionError)"
-    return $FALSE
+    return $ConnectionResult
 }
 
 function RegisterNewNode {
@@ -148,17 +146,19 @@ try {
             }
         }
 
-        if ((Check-Main-Process) -and (Check-Is-Connected)) {
+        $CONNECTION_RESULT = Get-Connection-Status
+        if ((Check-Main-Process) -And ($CONNECTION_RESULT -Like "Connected")) {
             $COUNT = 0
         } else {
             Write-Log "Waiting for main process to start or registration to complete"
             $COUNT += 1
-            if ($COUNT -eq 3) {
-                Write-Log "Retrying setup"
-                Setup-SHIR
-            }
             if ($COUNT -gt 5) {
                 throw "Diahost.exe is not running or not connected"  
+            }
+            
+            if ($CONNECTION_RESULT -NotLike "Connecting") {
+                Write-Log "Retrying setup"
+                Setup-SHIR
             }
         }
 
