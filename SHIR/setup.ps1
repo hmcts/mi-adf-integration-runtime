@@ -23,6 +23,30 @@ function Check-Main-Process() {
     return $FALSE
 }
 
+function Check-Is-Connected() {
+    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $processStartInfo.FileName = $DmgcmdPath
+    $processStartInfo.RedirectStandardError = $true
+    $processStartInfo.RedirectStandardOutput = $true
+    $processStartInfo.UseShellExecute = $false
+    $processStartInfo.Arguments = "-cgc"
+    
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $processStartInfo
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+    
+    $ConnectionResult = $process.StandardOutput.ReadToEnd() -replace "`t|`n|`r",""
+    $ConnectionError = $process.StandardError.ReadToEnd()
+    
+    if ($ConnectionResult -like "Connected") {
+        return $TRUE
+    }
+    
+    Write-Log "Node is not connected: output - $($ConnectionResult)"
+    Write-Log "Error if any: $($ConnectionError)"
+    return $FALSE
+}
 
 function RegisterNewNode {
     Param(
@@ -119,12 +143,12 @@ try {
             }
         }
 
-        if (Check-Main-Process -and Check-Is-Registered) {
+        if (Check-Main-Process -and Check-Is-Connected) {
             $COUNT = 0
         } else {
             $COUNT += 1
             if ($COUNT -gt 5) {
-                throw "Diahost.exe is not running or not registered"  
+                throw "Diahost.exe is not running or not connected"  
             }
         }
 
