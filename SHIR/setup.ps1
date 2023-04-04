@@ -19,7 +19,7 @@ function Check-Main-Process() {
         return $TRUE
     }
 
-    Write-Log "diahost.exe is not running"
+    Write-Log-Error "diahost.exe is not running"
     return $FALSE
 }
 
@@ -40,7 +40,7 @@ function Get-Connection-Status() {
     $ConnectionError = $process.StandardError.ReadToEnd()
     
     if ($ConnectionError) {
-        Write-Log "Error raised: $($ConnectionError)"
+        Write-Log-Error "Error raised: $($ConnectionError)"
     }
     
     return $ConnectionResult
@@ -84,7 +84,7 @@ function RegisterNewNode {
 
     if ($StdErrResult)
     {
-        Write-Log "Registration errors:"
+        Write-Log-Error "Registration errors:"
         $StdErrResult | ForEach-Object { Write-Log $_ }
     }
 }
@@ -115,7 +115,7 @@ function Setup-SHIR() {
 
         RegisterNewNode $Env:AUTH_KEY $Env:NODE_NAME $Env:ENABLE_HA $Env:HA_PORT
     } else {
-        Write-Log "Invalid AUTH_KEY Value"
+        Write-Log-Error "Invalid AUTH_KEY Value"
         exit 1
     }
 }
