@@ -1,14 +1,19 @@
 Import-Module $PSScriptRoot\library.ps1
 
-$SecretsMap = @{
-    "mi-adf-auth-key" = "AUTH_KEY"
-}
+$AuthKeySecretNameEnv = "AUTH_KEY_SECRET_NAME"
+$DefaultAuthKeySecretName = "mi-adf-auth-key"
+
+$SecretsMap = @{}
 
 function Set-Environment-Variables-From-Secrets() {
     if (Test-Path Env:SECRETS_MOUNT_PATH) {
+        $AuthKeySecretName = (Get-Item Env:$AuthKeySecretNameEnv).Value ?? $DefaultAuthKeySecretName
+        Write-Log "Setting AUTH_KEY from mounted secret $($AuthKeySecretName)"
+        $SecretsMap[$AuthKeySecretName] = "AUTH_KEY"
+
         $SecretsMountPath = (Get-Item Env:SECRETS_MOUNT_PATH).Value
         Write-Log "Getting secrets from KeyVault Mount: $($SecretsMountPath)"
-        
+
         $Files = Get-ChildItem -File "$($SecretsMountPath)"
 
         foreach ($File in $Files) {
