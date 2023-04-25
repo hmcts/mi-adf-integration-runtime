@@ -7,7 +7,11 @@ $SecretsMap = @{}
 
 function Set-Environment-Variables-From-Secrets() {
     if (Test-Path Env:SECRETS_MOUNT_PATH) {
-        $AuthKeySecretName = (Get-Item Env:$AuthKeySecretNameEnv).Value ?? $DefaultAuthKeySecretName
+        if (Test-Path Env:$AuthKeySecretNameEnv) {
+            $AuthKeySecretName = (Get-Item Env:$AuthKeySecretNameEnv).Value
+        } else {
+            $AuthKeySecretName = $DefaultAuthKeySecretName
+        }
         Write-Log "Setting AUTH_KEY from mounted secret $($AuthKeySecretName)"
         $SecretsMap[$AuthKeySecretName] = "AUTH_KEY"
 
