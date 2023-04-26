@@ -39,6 +39,10 @@ spec:
         - name: mi-adf-shir
           image: {{ .Values.image }}
           env:
+          {{- range $key, $val := .Values.additionalEnv }}
+            - name: {{ $key }}
+              value: {{ tpl ($val | quote) $ }}
+          {{- end }}
             {{ if .Values.secretsMountPath }}
             - name: SECRETS_MOUNT_PATH
               value: {{ .Values.secretsMountPath }}
