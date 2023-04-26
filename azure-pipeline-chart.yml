@@ -20,15 +20,12 @@ jobs:
   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
  
   pool:
-    name: hmcts-sandbox-agent-pool
+    vmImage: 'ubuntu-latest'
   steps:
   - template: steps/charts/release.yaml@cnp-library
     parameters:
       chartName: mi-adf-shir
       chartReleaseName: mi-adf-shir
       chartNamespace: chart-tests
-      serviceConnection: "DCD-CFTAPPS-SBOX"
-      aksResourceGroup: "cft-sbox-00-rg"
-      aksCluster: "cft-sbox-00-aks"
       acrName: "hmctspublic"
       chartPath: "./charts/"
