@@ -19,10 +19,32 @@ function Check-Main-Process() {
         return $TRUE
     }
 
-    Write-Log "diahost.exe is not running"
+    Write-Log-Error "diahost.exe is not running"
     return $FALSE
 }
 
+function Get-Connection-Status() {
+    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $processStartInfo.FileName = $DmgcmdPath
+    $processStartInfo.RedirectStandardError = $true
+    $processStartInfo.RedirectStandardOutput = $true
+    $processStartInfo.UseShellExecute = $false
+    $processStartInfo.Arguments = "-cgc"
+    
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $processStartInfo
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+    
+    $ConnectionResult = $process.StandardOutput.ReadToEnd() -replace "`t|`n|`r",""
+    $ConnectionError = $process.StandardError.ReadToEnd()
+    
+    if ($ConnectionError) {
+        Write-Log-Error "Error raised: $($ConnectionError)"
+    }
+    
+    return $ConnectionResult
+}
 
 function RegisterNewNode {
     Param(
@@ -62,10 +84,42 @@ function RegisterNewNode {
 
     if ($StdErrResult)
     {
-        Write-Log "Registration errors:"
+        Write-Log-Error "Registration errors:"
         $StdErrResult | ForEach-Object { Write-Log $_ }
     }
 }
+
+function Setup-SHIR() {
+    if (Check-Is-Registered) {
+        Write-Log "Restart the existing node"
+
+        if ($ENABLE_HA -eq "true") {
+            Write-Log "Enable High Availability"
+            $PORT = $HA_PORT
+            if (!$HA_PORT) {
+                $PORT = "8060"
+            }
+            Write-Log "Remote Access Port: $($PORT)"
+            Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+            Start-Sleep -Seconds 15
+        }
+
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+    } elseif (Test-Path Env:AUTH_KEY) {
+        Write-Log "Registering SHIR node with the node key: $($Env:AUTH_KEY)"
+        Write-Log "Registering SHIR node with the node name: $($Env:NODE_NAME)"
+        Write-Log "Registering SHIR node with the enable high availability flag: $($Env:ENABLE_HA)"
+        Write-Log "Registering SHIR node with the tcp port: $($Env:HA_PORT)"
+
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+
+        RegisterNewNode $Env:AUTH_KEY $Env:NODE_NAME $Env:ENABLE_HA $Env:HA_PORT
+    } else {
+        Write-Log-Error "Invalid AUTH_KEY Value"
+        exit 1
+    }
+}
+
 
 ### Begin setup
 
@@ -76,34 +130,7 @@ Add-Tns-Secrets-To-Names-File
 Set-Environment-Variables-From-Secrets
 
 # Register SHIR with key from Env Variable: AUTH_KEY
-if (Check-Is-Registered) {
-    Write-Log "Restart the existing node"
-
-    if ($ENABLE_HA -eq "true") {
-        Write-Log "Enable High Availability"
-        $PORT = $HA_PORT
-        if (!$HA_PORT) {
-            $PORT = "8060"
-        }
-        Write-Log "Remote Access Port: $($PORT)"
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
-        Start-Sleep -Seconds 15
-    }
-
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-} elseif (Test-Path Env:AUTH_KEY) {
-    Write-Log "Registering SHIR node with the node key: $($Env:AUTH_KEY)"
-    Write-Log "Registering SHIR node with the node name: $($Env:NODE_NAME)"
-    Write-Log "Registering SHIR node with the enable high availability flag: $($Env:ENABLE_HA)"
-    Write-Log "Registering SHIR node with the tcp port: $($Env:HA_PORT)"
-    
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-
-    RegisterNewNode $Env:AUTH_KEY $Env:NODE_NAME $Env:ENABLE_HA $Env:HA_PORT
-} else {
-    Write-Log "Invalid AUTH_KEY Value"
-    exit 1
-}
+Setup-SHIR
 
 Write-Log "Waiting 60 seconds for connecting"
 Start-Sleep -Seconds 60
@@ -119,12 +146,19 @@ try {
             }
         }
 
-        if (Check-Main-Process) {
+        $CONNECTION_RESULT = Get-Connection-Status
+        if ((Check-Main-Process) -And ($CONNECTION_RESULT -Like "Connected")) {
             $COUNT = 0
         } else {
+            Write-Log "Waiting for main process to start or registration to complete"
             $COUNT += 1
             if ($COUNT -gt 5) {
-                throw "Diahost.exe is not running"  
+                throw "Diahost.exe is not running or not connected"  
+            }
+            
+            if ($CONNECTION_RESULT -NotLike "Connecting") {
+                Write-Log "Retrying setup"
+                Setup-SHIR
             }
         }
 
