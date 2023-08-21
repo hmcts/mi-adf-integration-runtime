@@ -149,6 +149,7 @@ try {
         $CONNECTION_RESULT = Get-Connection-Status
         if ((Check-Main-Process) -And ($CONNECTION_RESULT -Like "Connected")) {
             $COUNT = 0
+            Write-Log "Node is connected"
         } else {
             Write-Log "Waiting for main process to start or registration to complete"
             $COUNT += 1
