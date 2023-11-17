@@ -9,7 +9,7 @@ pr:
     - master
 resources:
   repositories:
-  - repository: cnp-library
+  - repository: cnp-azuredevops-libraries
     type: github
     name: hmcts/cnp-azuredevops-libraries
     endpoint: 'hmcts'
@@ -22,7 +22,7 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
-  - template: steps/charts/release.yaml@cnp-library
+  - template: steps/charts/release.yaml@cnp-azuredevops-libraries
     parameters:
       chartName: mi-adf-shir
       chartReleaseName: mi-adf-shir
