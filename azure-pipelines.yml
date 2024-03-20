@@ -10,6 +10,13 @@ parameters:
     displayName: Push Docker Image To ACR
     type: boolean
     default: false
+  - name: deployTarget
+    displayName: Set docker tag deploy target
+    type: string
+    default: dev
+    values:
+      - 'dev'
+      - 'prod'
 
 resources:
   repositories:
@@ -25,10 +32,8 @@ variables:
   azureSubscriptionEndpoint: 'DTS-SHAREDSERVICES-PROD'
   azureContainerRegistry: 'sdshmctspublic.azurecr.io'
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}: 
-    deployTarget: prod
     fortifyTarget: stg
   ${{ if not(eq(variables['Build.SourceBranchName'], 'master')) }}: 
-    deployTarget: dev
     fortifyTarget: dev
   azureSubscriptionName: 'DTS-SHAREDSERVICES'
 
@@ -59,7 +64,7 @@ stages:
           - task: Docker@1
             displayName: 'Build Docker Image'
             inputs:
-              imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName):$(deployTarget)-$(getDockerTag.DOCKER_TAG)'
+              imageName: '$(azureContainerRegistry)/$(projectName)/$(applicationName):${{ parameters.deployTarget }}-$(getDockerTag.DOCKER_TAG)'
               command: build
               Dockerfile: ./Dockerfile
           - task: Docker@1
@@ -69,7 +74,7 @@ stages:
               azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
               azureContainerRegistry: $(azureContainerRegistry)
               command: push
-              imageName: '$(projectName)/$(applicationName):$(deployTarget)-$(getDockerTag.DOCKER_TAG)'
+              imageName: '$(projectName)/$(applicationName):${{ parameters.deployTarget }}-$(getDockerTag.DOCKER_TAG)'
           - task: Docker@1
             displayName: 'Docker Logout'
             inputs:
