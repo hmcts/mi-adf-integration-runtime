@@ -19,42 +19,28 @@ function Check-Main-Process() {
         return $TRUE
     }
 
-    Write-Log-Error "diahost.exe is not running"
+    Write-Log "diahost.exe is not running"
     return $FALSE
 }
 
-function Get-Connection-Status() {
-    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $processStartInfo.FileName = $DmgcmdPath
-    $processStartInfo.RedirectStandardError = $true
-    $processStartInfo.RedirectStandardOutput = $true
-    $processStartInfo.UseShellExecute = $false
-    $processStartInfo.Arguments = "-cgc"
-    
-    $process = New-Object System.Diagnostics.Process
-    $process.StartInfo = $processStartInfo
-    $process.Start() | Out-Null
-    $process.WaitForExit()
-    
-    $ConnectionResult = $process.StandardOutput.ReadToEnd() -replace "`t|`n|`r",""
-    $ConnectionError = $process.StandardError.ReadToEnd()
-    
-    if ($ConnectionError) {
-        Write-Log-Error "Error raised: $($ConnectionError)"
-    }
-    
-    return $ConnectionResult
-}
 
 function RegisterNewNode {
     Param(
         $AUTH_KEY,
         $NODE_NAME,
         $ENABLE_HA,
-        $HA_PORT
+        $HA_PORT,
+        $ENABLE_AE,
+        $AE_TIME
     )
 
     Write-Log "Start registering a new SHIR node"
+    Write-Log "Registering SHIR node with the node key: $($AUTH_KEY)"
+
+    if (!$NODE_NAME) {
+        $NODE_NAME = $Env:COMPUTERNAME
+    }
+    Write-Log "Registering SHIR node with the node name: $($NODE_NAME)"
 
     if ($ENABLE_HA -eq "true") {
         Write-Log "Enable High Availability"
@@ -67,8 +53,15 @@ function RegisterNewNode {
         Start-Sleep -Seconds 15
     }
 
-    if (!$NODE_NAME) {
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
+    if ($ENABLE_AE -eq "true") {
+        Write-Log "Enable Offline Nodes Auto-Expiration"
+        if (!$AE_TIME) {
+            $AE_TIME = 600
+        }
+
+        Write-Log "Node Expiration Time In Seconds: $($AE_TIME)"
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)", "$($NODE_NAME)", "$($AE_TIME)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
+        Start-Sleep -Seconds 15
     } else {
         Start-Process $DmgcmdPath -Wait -ArgumentList "-RegisterNewNode", "$($AUTH_KEY)", "$($NODE_NAME)" -RedirectStandardOutput "C:\SHIR\register-out.txt" -RedirectStandardError "C:\SHIR\register-error.txt"
     }
@@ -84,44 +77,10 @@ function RegisterNewNode {
 
     if ($StdErrResult)
     {
-        Write-Log-Error "Registration errors:"
+        Write-Log "Registration errors:"
         $StdErrResult | ForEach-Object { Write-Log $_ }
     }
 }
-
-function Setup-SHIR() {
-    if (Check-Is-Registered) {
-        Write-Log "Restart the existing node"
-
-        if ($ENABLE_HA -eq "true") {
-            Write-Log "Enable High Availability"
-            $PORT = $HA_PORT
-            if (!$HA_PORT) {
-                $PORT = "8060"
-            }
-            Write-Log "Remote Access Port: $($PORT)"
-            Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
-            Start-Sleep -Seconds 15
-        }
-
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-    } elseif (Test-Path Env:AUTH_KEY) {
-        Write-Log "Registering SHIR node with the node key: $($Env:AUTH_KEY)"
-        Write-Log "Registering SHIR node with the node name: $($Env:NODE_NAME)"
-        Write-Log "Registering SHIR node with the enable high availability flag: $($Env:ENABLE_HA)"
-        Write-Log "Registering SHIR node with the tcp port: $($Env:HA_PORT)"
-
-        Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
-
-        RegisterNewNode $Env:AUTH_KEY $Env:NODE_NAME $Env:ENABLE_HA $Env:HA_PORT
-    } else {
-        Write-Log-Error "Invalid AUTH_KEY Value"
-        exit 1
-    }
-}
-
-
-### Begin setup
 
 # Setup tnsnames.ora file for any multi instance Oracle connections
 Add-Tns-Secrets-To-Names-File
@@ -129,8 +88,39 @@ Add-Tns-Secrets-To-Names-File
 # Setup env from secrets
 Set-Environment-Variables-From-Secrets
 
+# Set timezone if set from input
+If (Test-Path Env.TZ) {
+    try { 
+        Set-TimeZone -Id $Env:TZ 
+    } catch {
+        Write-Log "Unable to set the $Env:TZ timezone"
+    }
+}
+
 # Register SHIR with key from Env Variable: AUTH_KEY
-Setup-SHIR
+if (Check-Is-Registered) {
+    Write-Log "Restart the existing node"
+
+    if ((Test-Path Env:ENABLE_HA) -and ($Env:ENABLE_HA -eq "true")) {
+        Write-Log "Enable High Availability"
+        $PORT = $Env:HA_PORT
+        if (!$Env:HA_PORT) {
+            $PORT = "8060"
+        }
+        Write-Log "Remote Access Port: $($PORT)"
+        Start-Process $DmgcmdPath -Wait -ArgumentList "-EnableRemoteAccessInContainer", "$($PORT)"
+        Start-Sleep -Seconds 15
+    }
+
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+} elseif (Test-Path Env:AUTH_KEY) {
+    Start-Process $DmgcmdPath -Wait -ArgumentList "-Start"
+
+    RegisterNewNode $Env:AUTH_KEY $Env:NODE_NAME $Env:ENABLE_HA $Env:HA_PORT $Env:ENABLE_AE $Env:AE_TIME
+} else {
+    Write-Log "Invalid AUTH_KEY Value"
+    exit 1
+}
 
 Write-Log "Waiting 60 seconds for connecting"
 Start-Sleep -Seconds 60
@@ -146,20 +136,12 @@ try {
             }
         }
 
-        $CONNECTION_RESULT = Get-Connection-Status
-        if ((Check-Main-Process) -And ($CONNECTION_RESULT -Like "Connected")) {
+        if (Check-Main-Process) {
             $COUNT = 0
-            Write-Log "Node is connected"
         } else {
-            Write-Log "Waiting for main process to start or registration to complete"
             $COUNT += 1
             if ($COUNT -gt 5) {
-                throw "Diahost.exe is not running or not connected"  
-            }
-            
-            if ($CONNECTION_RESULT -NotLike "Connecting") {
-                Write-Log "Retrying setup"
-                Setup-SHIR
+                throw "Diahost.exe is not running"  
             }
         }
 

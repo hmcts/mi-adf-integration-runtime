@@ -17,7 +17,7 @@ pool:
 parameters:
   - name: enabled
     type: boolean
-    default: false # Latest SHIR version is broken on our AKS setup. Change to true when fixed.
+    default: true
   - name: environment
     displayName: Environment
     type: string
