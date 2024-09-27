@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
 ARG INSTALL_JDK=true
 ARG INSTALL_NET_FRAMEWORK=false
 
