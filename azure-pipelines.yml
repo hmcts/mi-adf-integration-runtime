@@ -63,7 +63,7 @@ stages:
               command: build
               Dockerfile: ./Dockerfile
           - task: Docker@1
-            condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(${{ parameters.pushImage }}, true))
+            condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(${{ parameters.pushImage }}, true)))
             displayName: 'Push Docker Image'
             inputs:
               azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
