@@ -4,8 +4,8 @@ $DmgcmdPath = "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.
 
 function Install-SHIR() {
     Write-Log "Install the Self-hosted Integration Runtime in the Windows container"
-    $IntegrationRuntimeVersion = 'IntegrationRuntime_5.45.8999.1'
-    $FixedVersionURL = 'https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_5.45.8999.1.msi'
+    $IntegrationRuntimeVersion = 'IntegrationRuntime_5.48.9076.1'
+    $FixedVersionURL = 'https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_5.48.9076.1.msi'
     $MsiFiles = (Get-ChildItem -Path C:\SHIR | Where-Object { $_.Name -match [regex] "IntegrationRuntime.*.msi" })
     if ($MsiFiles) {
         $MsiFileName = $MsiFiles[0].Name
