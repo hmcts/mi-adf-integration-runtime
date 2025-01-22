@@ -6,7 +6,7 @@ function Get-Remote-SHIR() {
   Write-Log "Downloading latest version of SHIR MSI file"
 
   $MinimunVersion = [Version]'5.48.9106.2'
-  $FixedVersionURL = 'https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_5.49.8806.2.msi'
+  $FixedVersionURL = 'https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_5.48.9106.2.msi'
   $DownloadURL = 'https://go.microsoft.com/fwlink/?linkid=839822&clcid=0x409'
   try{
     $Response = Invoke-WebRequest -Uri $DownloadURL -Method Get -UseBasicParsing -MaximumRedirection 0
@@ -18,7 +18,7 @@ function Get-Remote-SHIR() {
   if ($RedirectURL -match 'IntegrationRuntime_(\d+\.\d+\.\d+\.\d+)') {
     if ($matches.Count -gt 1) {
       $ExtractedVersion = [Version]$matches[1]
-      Write-Output "Download Version: $ExtractedVersion"
+      Write-Output "Dynamic download Version: $ExtractedVersion"
     }
   } else {
     Write-Output "Version number not found in the URL"
@@ -26,7 +26,7 @@ function Get-Remote-SHIR() {
   
 
   # Compare the versions
-  if ($null -eq $ExtractedVersion -and $ExtractedVersion -lt $MinimunVersion) {
+  if ($null -eq $ExtractedVersion -or $ExtractedVersion -lt $MinimunVersion) {
       Write-Output "The extracted version ($ExtractedVersion) is lower than $MinimunVersion. Using minimum version URL."
       $DownloadURL = $FixedVersionURL
   }
