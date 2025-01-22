@@ -8,7 +8,11 @@ function Get-Remote-SHIR() {
   $MinimunVersion = [Version]'5.48.9106.2'
   $FixedVersionURL = 'https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_5.49.8806.2.msi'
   $DownloadURL = 'https://go.microsoft.com/fwlink/?linkid=839822&clcid=0x409'
-  $Response = Invoke-WebRequest -Uri $DownloadURL -Method Get -UseBasicParsing -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction
+  try{
+    $Response = Invoke-WebRequest -Uri $DownloadURL -Method Get -UseBasicParsing -MaximumRedirection 0
+  } catch {
+  }
+
   $RedirectURL = [string]$Response.Headers['Location']
   Write-Output "Redirect URL: $RedirectURL"
   if ($RedirectURL -match 'IntegrationRuntime_(\d+\.\d+\.\d+\.\d+)') {
