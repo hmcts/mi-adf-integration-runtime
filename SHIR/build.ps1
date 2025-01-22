@@ -2,6 +2,41 @@ Import-Module $PSScriptRoot\library.ps1
 
 $DmgcmdPath = "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
 
+function Get-Remote-SHIR() {
+  Write-Log "Downloading latest version of SHIR MSI file"
+
+  $MinimunVersion = [Version]'5.48.9106.2'
+  $FixedVersionURL = 'https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_5.49.8806.2.msi'
+  
+  $DownloadURL = 'https://go.microsoft.com/fwlink/?linkid=839822&clcid=0x409'
+  
+  $Response = Invoke-WebRequest -Uri $DownloadURL -Method Get -UseBasicParsing -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction SilentlyContinue
+  $RedirectURL = [string]$Response.Headers['Location']
+  Write-Output "Redirect URL: $RedirectURL"
+  if ($RedirectURL -match 'IntegrationRuntime_(\d+\.\d+\.\d+\.\d+)') {
+    if ($matches.Count -gt 1) {
+      $ExtractedVersion = [Version]$matches[1]
+      Write-Output "Download Version: $ExtractedVersion"
+    }
+  } else {
+    Write-Output "Version number not found in the URL"
+  }
+  
+
+  # Compare the versions
+  if ($null -eq $ExtractedVersion -and $ExtractedVersion -lt $MinimunVersion) {
+      Write-Output "The extracted version ($ExtractedVersion) is lower than $MinimunVersion. Using minimum version URL."
+      $DownloadURL = $FixedVersionURL
+  }
+
+  $MsiFileName = 'IntegrationRuntime.latest.msi'
+
+  # Temporarily disable progress updates to speed up the download process. (See https://stackoverflow.com/questions/69942663/invoke-webrequest-progress-becomes-irresponsive-paused-while-downloading-the-fil)
+  $ProgressPreference = 'SilentlyContinue'
+  Invoke-WebRequest -Uri $DownloadURL -OutFile "C:\SHIR\$MsiFileName"
+  $ProgressPreference = 'Continue'
+}
+
 function Install-SHIR() {
     Write-Log "Install the Self-hosted Integration Runtime in the Windows container"
 
@@ -11,13 +46,7 @@ function Install-SHIR() {
         Write-Log "Using SHIR MSI file: $MsiFileName"
     }
     else {
-        Write-Log "Downloading latest version of SHIR MSI file"
-        $MsiFileName = 'IntegrationRuntime.latest.msi'
-
-        # Temporarily disable progress updates to speed up the download process. (See https://stackoverflow.com/questions/69942663/invoke-webrequest-progress-becomes-irresponsive-paused-while-downloading-the-fil)
-        $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=839822&clcid=0x409' -OutFile "C:\SHIR\$MsiFileName"
-        $ProgressPreference = 'Continue'
+        Get-Remote-SHIR
     }
 
     Write-Log "Installing SHIR"
@@ -28,6 +57,20 @@ function Install-SHIR() {
 
     Write-Log "SHIR MSI Install Successfully"
 }
+function Add-Monitor-User($theUser) {
+  try {
+      Add-LocalGroupMember -Group "Performance Monitor Users" -Member $theUser
+  } catch {
+      Write-Log "The user $theUser was already in the Performance Monitor Users group"
+  }
+  try {
+      Add-LocalGroupMember -Group "Performance Log Users" -Member $theUser
+  } catch {
+      Write-Log "The user $theUser was already in the Performance Log Users group"
+  }
+  Write-Log "The user $theUser is now in groups Performance Monitor Users and Performance Log Users"
+}  
+
 
 function SetupEnv() {
     Write-Log "Begin to Setup the SHIR Environment"
@@ -55,6 +98,14 @@ try {
     Install-Jre
     Install-NetFramework
     Install-SHIR
+    
+    # #######################################################
+    # Add user to the monitoring groups
+    # the current user was fetched from a running pod using the below code
+    # $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    Add-Monitor-User "User Manager\ContainerAdministrator"  # This is the user that a user will enter as when logging into the container
+    Add-Monitor-User "NT SERVICE\DIAHostService"            # This is the user that runs the SHIR backend
+
 } catch {
     exit 1
 }
