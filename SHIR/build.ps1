@@ -86,8 +86,8 @@ function Install-NetFramework() {
 }
 
 try {
-    # Install-Jre
-    # Install-NetFramework
+    Install-Jre
+    Install-NetFramework
     Install-SHIR
 
 } catch {
