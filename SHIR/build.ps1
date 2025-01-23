@@ -53,10 +53,12 @@ function Install-SHIR() {
 
     Write-Log "Installing SHIR"
     Start-Process msiexec.exe -Wait -ArgumentList "/i C:\SHIR\$MsiFileName /qn"
+    
     if (!$?) {
         Write-Log "SHIR MSI Install Failed"
     }
 
+    dir "C:\Program Files\Microsoft Integration Runtime"
     Write-Log "SHIR MSI Install Successfully"
 }
 
@@ -83,8 +85,8 @@ function Install-NetFramework() {
 }
 
 try {
-    # Install-Jre
-    # Install-NetFramework
+    Install-Jre
+    Install-NetFramework
     Install-SHIR
 
 } catch {
