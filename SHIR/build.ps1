@@ -12,6 +12,7 @@ function Get-Remote-SHIR() {
   try{
     $Response = Invoke-WebRequest -Uri $DownloadURL -Method Get -UseBasicParsing -MaximumRedirection 0
   } catch {
+    #  ignore the error
   }
 
   $RedirectURL = [string]$Response.Headers['Location']
