@@ -1,41 +1,65 @@
-<!-- BEGIN MICROSOFT SECURITY.MD V0.0.5 BLOCK -->
+# Security Policy
 
-## Security
+## Purpose
 
-Microsoft takes the security of our software products and services seriously, which includes all source code repositories managed through our GitHub organizations, which include [Microsoft](https://github.com/Microsoft), [Azure](https://github.com/Azure), [DotNet](https://github.com/dotnet), [AspNet](https://github.com/aspnet), [Xamarin](https://github.com/xamarin), and [our GitHub organizations](https://opensource.microsoft.com/).
+This document outlines how security vulnerabilities should be reported for this
+repository.
 
-If you believe you have found a security vulnerability in any Microsoft-owned repository that meets [Microsoft's definition of a security vulnerability](https://docs.microsoft.com/en-us/previous-versions/tn-archive/cc751383(v=technet.10)), please report it to us as described below.
+HMCTS is committed to responsible vulnerability disclosure and to addressing
+legitimate security issues in a timely and coordinated manner.
 
-## Reporting Security Issues
+## Reporting a vulnerability
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+If you believe you have identified a security vulnerability in this repository, please report it by email to: 
 
-Instead, please report them to the Microsoft Security Response Center (MSRC) at [https://msrc.microsoft.com/create-report](https://msrc.microsoft.com/create-report).
+HMCTSVulnerabilityDisclosure@justice.gov.uk
 
-If you prefer to submit without logging in, send email to [secure@microsoft.com](mailto:secure@microsoft.com).  If possible, encrypt your message with our PGP key; please download it from the [Microsoft Security Response Center PGP Key page](https://www.microsoft.com/en-us/msrc/pgp-key-msrc).
+This email address is the sole approved point of contact for vulnerability disclosures relating to HMCTS-owned repositories and services.
 
-You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message. Additional information can be found at [microsoft.com/msrc](https://www.microsoft.com/msrc). 
+Please **do not** create public GitHub issues or pull requests to report security vulnerabilities.
 
-Please include the requested information listed below (as much as you can provide) to help us better understand the nature and scope of the possible issue:
+## What to Include in a Report
 
-  * Type of issue (e.g. buffer overflow, SQL injection, cross-site scripting, etc.)
-  * Full paths of source file(s) related to the manifestation of the issue
-  * The location of the affected source code (tag/branch/commit or direct URL)
-  * Any special configuration required to reproduce the issue
-  * Step-by-step instructions to reproduce the issue
-  * Proof-of-concept or exploit code (if possible)
-  * Impact of the issue, including how an attacker might exploit the issue
+When reporting a vulnerability, please provide as much of the following information as possible:
 
-This information will help us triage your report more quickly.
+- The repository, service, or component affected
+- A clear description of the vulnerability
+- Steps required to reproduce the issue
+- Any non-destructive proof of concept or exploitation details
 
-If you are reporting for a bug bounty, more complete reports can contribute to a higher bounty award. Please visit our [Microsoft Bug Bounty Program](https://microsoft.com/msrc/bounty) page for more details about our active programs.
+Where available, the following additional information is helpful:
 
-## Preferred Languages
+- The suspected vulnerability type (for example, an OWASP category)
+- Relevant logs, screenshot or error messages
 
-We prefer all communications to be in English.
+Reports do not need to be fully validated before submission. If you are unsure whether an issue is exploitable or security-relevant, you are still encouraged to report it.
 
-## Policy
+## Responsible Disclosure Guidelines
 
-Microsoft follows the principle of [Coordinated Vulnerability Disclosure](https://www.microsoft.com/en-us/msrc/cvd).
+When investigating or reporting a vulnerability affecting HMCTS systems, reporters must not:
 
-<!-- END MICROSOFT SECURITY.MD BLOCK -->
+- Break the law or breach applicable regulations
+- Access unnecessary, excessive, or unrelated data
+- Modify or delete data
+- Perform denial-of-service or other disruptive testing
+- Use high-intensity, invasive, or destructive scanning techniques
+- Publicly disclose the vulnerability before it has been addressed
+- Attempt social engineering, Phishing, or physical attacks
+- Demand payment or compensation in exchange for disclosure
+
+These guidelines are intended to protect users, services, and data while allowing good-faith security research.
+
+
+## Bug Bounty
+
+HMCTS does not operate a paid bug bounty programme.
+
+## Code of Conduct
+
+All contributors and reporters are expected to act in good faith and in accordance with applicable laws and professional standards.
+
+## Further Reading
+
+- https://www.ncsc.gov.uk/information/vulnerability-reporting
+- https://www.gov.uk/help/report-vulnerability
+- https://github.com/Trewaters/security-README
