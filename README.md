@@ -10,6 +10,15 @@ Support SHIR version: 5.0 or later
 
 For more information about Azure Data Factory, see [https://docs.microsoft.com/en-us/azure/data-factory/concepts-integration-runtime](https://docs.microsoft.com/en-us/azure/data-factory/concepts-integration-runtime)
 
+| Argument | Default Value | Description |
+|---|---|---|
+| INSTALL_JDK | true | Installs the Microsoft JDK 21 dependency. |
+| INSTALL_LEGACY_JDK | false | Installs the Adopt Open JDK 17 dependency. This is already a fallback on INSTALL_JDK so does not need setting if that is set to true. |
+| INSTALL_NET_FRAMEWORK | true | Installs the .NET Framework |
+| INSTALL_CERT | true | Installs MS Certs |
+| ADD_MONITOR_USERS | true | Adds Monitor Users |
+| SETUP_ENV | false | Performs basic env changes such as stopping auto update. Not tested. |
+| SHIR_FIX_VERSION | 5.65.9593.1 | If set, instead of using the download dynamic link and minimum version checking, will try to download the exact specified fix version. |
 
 # Contributing
 
