@@ -147,11 +147,6 @@ function Install-NetFramework() {
 }
 
 try {
-    if ([bool]::Parse($env:ADD_MONITOR_USERS)) {
-        Add-Monitor-User "User Manager\ContainerAdministrator"  # This is the user that a user will enter as when logging into the container
-        Add-Monitor-User "NT SERVICE\DIAHostService"            # This is the user that runs the SHIR backend
-    }
-    
     if ([bool]::Parse($env:INSTALL_JDK)) {
         Install-MSFT-JDK
     }
@@ -169,6 +164,10 @@ try {
     
     if ([bool]::Parse($env:SETUP_ENV)) {
         SetupEnv
+    }
+    if ([bool]::Parse($env:ADD_MONITOR_USERS)) {
+        Add-Monitor-User "User Manager\ContainerAdministrator"  # This is the user that a user will enter as when logging into the container
+        Add-Monitor-User "NT SERVICE\DIAHostService"            # This is the user that runs the SHIR backend
     }
 
 } catch {
