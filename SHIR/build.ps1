@@ -9,6 +9,7 @@ function Get-Remote-SHIR() {
     $MinimumVersion = [Version]'5.48.9106.2'
     if ($env:SHIR_FIX_VERSION -and $env:SHIR_FIX_VERSION.Trim() -ne '') { 
         $FixedVersion = $env:SHIR_FIX_VERSION.Trim()
+        Write-Output "SHIR FIX VERSION set to: $FixedVersion"
         $DownloadURL = "https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_$FixedVersion.msi"
     } else { 
         $FixedVersionURL = "https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_$MinimumVersion.msi"
