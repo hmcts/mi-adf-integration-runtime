@@ -9,7 +9,7 @@ function Get-Remote-SHIR() {
     $MinimumVersion = [Version]'5.48.9106.2'
     if ($env:SHIR_FIX_VERSION -and $env:SHIR_FIX_VERSION.Trim() -ne '') { 
         $FixedVersion = $env:SHIR_FIX_VERSION.Trim()
-        Write-Output "SHIR FIX VERSION set to: $FixedVersion"
+        Write-Log "SHIR FIX VERSION set to: $FixedVersion"
         $DownloadURL = "https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_$FixedVersion.msi"
     } else { 
         $FixedVersionURL = "https://download.microsoft.com/download/E/4/7/E4771905-1079-445B-8BF9-8A1A075D8A10/IntegrationRuntime_$MinimumVersion.msi"
@@ -17,23 +17,23 @@ function Get-Remote-SHIR() {
         try{
           $Response = Invoke-WebRequest -Uri $DownloadURL -Method Get -UseBasicParsing -MaximumRedirection 2
         } catch {
-          #  ignore the error
+          Write-Log $_
         }
       
         $RedirectURL = [string]$Response.Headers['Location']
-        Write-Output "Redirect URL: $RedirectURL"
+        Write-Log "Redirect URL: $RedirectURL"
         if ($RedirectURL -match 'IntegrationRuntime_(\d+\.\d+\.\d+\.\d+)') {
           if ($matches.Count -gt 1) {
             $ExtractedVersion = [Version]$matches[1]
-            Write-Output "Dynamic download Version: $ExtractedVersion"
+            Write-Log "Dynamic download Version: $ExtractedVersion"
           }
         } else {
-          Write-Output "Version number not found in the URL"
+          Write-Log "Version number not found in the URL"
         }
         
         # Compare the versions
         if ($null -eq $ExtractedVersion -or $ExtractedVersion -lt $MinimumVersion) {
-            Write-Output "The extracted version ($ExtractedVersion) is lower than $MinimumVersion. Using minimum version URL."
+            Write-Log "The extracted version ($ExtractedVersion) is lower than $MinimumVersion. Using minimum version URL."
             $DownloadURL = $FixedVersionURL
         }
     }
@@ -146,6 +146,98 @@ function Install-NetFramework() {
     Write-Log "Vcc Redistributable installed successfully"
 }
 
+function Add-ToSystemPath([string]$Dir) {
+    $current = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+    if ($current -notlike "*$Dir*") {
+        [System.Environment]::SetEnvironmentVariable(
+            "Path", "$current;$Dir", "Machine"
+        )
+        Write-Log "Added to system PATH: $Dir"
+    } else {
+        Write-Log "Already in system PATH: $Dir"
+    }
+}
+
+function Install-OracleInstantClient() {
+    $ErrorActionPreference = "Stop"
+    
+    $Version     = "23.26.1.0.0"
+    $InstallRoot = "C:\oracle"
+    $VerParts    = $Version -split "\."
+    $DirName     = "instantclient_$($VerParts[0])_$($VerParts[1])"
+    $InstallDir  = Join-Path $InstallRoot $DirName
+    $TempDir     = Join-Path $env:TEMP "oracle_ic_install"
+    
+    # Oracle CDN base URL uses ShortVer (major.minor.patch), dots removed for path segment
+    $BaseUrl     = "https://download.oracle.com/otn_software/nt/instantclient/$($Version -replace '\.','')/"
+
+    $Packages = @(
+        "instantclient-basic-windows.x64-${Version}.zip",
+        "instantclient-sqlplus-windows.x64-${Version}.zip",
+        "instantclient-tools-windows.x64-${Version}.zip",
+        "instantclient-odbc-windows.x64-${Version}.zip"
+    )
+
+    Write-Log "Preparing directories"
+    foreach ($d in @($TempDir, $InstallRoot)) {
+        if (-not (Test-Path $d)) {
+            New-Item -ItemType Directory -Path $d -Force | Out-Null
+            Write-Log "Created: $d"
+        }
+    }
+
+    Write-Log "Downloading packages from Oracle CDN"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    
+    $downloaded = @()
+    foreach ($pkg in $Packages) {
+        $url      = "$BaseUrl$pkg"
+        $destFile = Join-Path $TempDir $pkg
+    
+        if (Test-Path $destFile) {
+            Write-Log "Already cached: $pkg"
+        } else {
+            Write-Log "Downloading: $pkg"
+            try {
+                Invoke-WebRequest -Uri $url -OutFile $destFile -UseBasicParsing
+            } catch {
+                Write-Log "Failed to download $pkg from $url"
+                throw
+            }
+        }
+        $downloaded += $destFile
+    }
+
+    Write-Log "Extracting packages to $InstallRoot"
+    foreach ($zip in $downloaded) {
+        Write-Log "Extracting: $(Split-Path $zip -Leaf)"
+        Expand-Archive -Path $zip -DestinationPath $InstallRoot -Force
+    }
+
+    if (-not (Test-Path $InstallDir)) {
+        $found = Get-ChildItem $InstallRoot -Directory | Where-Object { $_.Name -like "instantclient_*" } | Select-Object -First 1
+        if ($found) {
+            $InstallDir = $found.FullName
+            Write-Log "Detected install dir: $InstallDir"
+        } else {
+            throw "Could not find extracted Instant Client directory under $InstallRoot"
+        }
+    }
+    
+    Write-Log "Install directory: $InstallDir"
+    Write-Log "Updating system PATH"
+    Add-ToSystemPath $InstallDir
+
+    Write-Log "Verifying installation"
+    $sqlplusPath = Join-Path $InstallDir "sqlplus.exe"
+    if (Test-Path $sqlplusPath) {
+        $verOutput = & $sqlplusPath -V 2>&1 | Select-Object -First 2
+        Write-Log ($verOutput -join "`n")
+    } else {
+        Write-Log "sqlplus.exe not found. SQL*Plus package may not have been included."
+    }
+}
+
 try {
     if ([bool]::Parse($env:INSTALL_JDK)) {
         Install-MSFT-JDK
@@ -158,6 +250,9 @@ try {
     }
     if ([bool]::Parse($env:INSTALL_CERT)) {
         Install-Certificate
+    }
+    if ([bool]::Parse($env:INSTALL_ORACLE)) {
+        Install-OracleInstantClient
     }
     
     Install-SHIR

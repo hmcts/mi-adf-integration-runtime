@@ -33,12 +33,12 @@ variables:
   azureSubscriptionName: 'DTS-SHAREDSERVICES'
 
 stages:
-  - template: pipeline-steps/templates/run-fortify-scan.yaml@mi-core
-    parameters:
-      azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-${{ upper(variables.fortifyTarget) }}"
-      azureVault: "mi-vault-${{ variables.fortifyTarget }}"
-      vaultAgentPool: "hmcts-ss-${{ variables.fortifyTarget }}"
-      applicationName: "$(projectName)-$(applicationName)"
+  # - template: pipeline-steps/templates/run-fortify-scan.yaml@mi-core
+  #   parameters:
+  #     azureSubscriptionEndpoint: "${{ variables.azureSubscriptionName }}-${{ upper(variables.fortifyTarget) }}"
+  #     azureVault: "mi-vault-${{ variables.fortifyTarget }}"
+  #     vaultAgentPool: "hmcts-ss-${{ variables.fortifyTarget }}"
+  #     applicationName: "$(projectName)-$(applicationName)"
   - stage: BuildAndPush
     jobs:
       - job: BuildAndPush
