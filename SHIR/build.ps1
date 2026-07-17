@@ -136,7 +136,7 @@ function Install-Jre() {
     Start-Process -Wait -FilePath msiexec -ArgumentList /i, "C:\SHIR\OpenJdk17.msi", "ADDLOCAL=FeatureMain,FeatureEnvironment,FeatureJarFileRunWith,FeatureJavaHome", 'INSTALLDIR="C:\Program Files\Java"', /quiet -Verb RunAs
     Write-Log "OpenJDK 17 installed successfully"
     [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Java;C:\Program Files\Java\bin", "Machine")
-    [Environment]::SetEnvironmentVariable("JAVA_TOOL_OPTIONS", "-Xms1024m -Xmx2048m", "Machine")
+    [Environment]::SetEnvironmentVariable("JAVA_TOOL_OPTIONS", "-Xms2024m -Xmx4048m", "Machine")
 }
 
 function Install-NetFramework() {

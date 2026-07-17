@@ -5,7 +5,6 @@ ARG INSTALL_NET_FRAMEWORK=true
 ARG INSTALL_CERT=true
 ARG ADD_MONITOR_USERS=true
 ARG SETUP_ENV=false
-ARG SHIR_FIX_VERSION=5.65.9593.1
 
 # Download the latest self-hosted integration runtime installer into the SHIR folder
 COPY SHIR C:/SHIR/
