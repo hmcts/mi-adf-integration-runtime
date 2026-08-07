@@ -1,11 +1,10 @@
+Import-Module $PSScriptRoot\library.ps1
+
 $DmgcmdPath = "C:\Program Files\Microsoft Integration Runtime\5.0\Shared\dmgcmd.exe"
 
 function Check-Node-Connection() {
-    Start-Process $DmgcmdPath -Wait -ArgumentList "-cgc" -RedirectStandardOutput "C:\SHIR\status-check.txt"
-    $ConnectionResult = Get-Content "C:\SHIR\status-check.txt"
-    Remove-Item -Force "C:\SHIR\status-check.txt"
-
-    if ($ConnectionResult -like "Connected") {
+    $CONNECTION_RESULT = Get-Connection-Status
+    if ((Check-Is-Registered) -And (Check-Main-Process) -And ($CONNECTION_RESULT -Like "Connected")) {
         return $TRUE
     }
     else {
